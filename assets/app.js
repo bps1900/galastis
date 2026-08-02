@@ -250,7 +250,7 @@ function renderKatalog() {
     </div>
     ${
       items.length === 0
-        ? `<div class="empty-state">Belum ada karya ${kat} yang ditambahkan. Admin bisa menambahkannya melalui halaman admin.</div>`
+        ? `<div class="empty-state">Belum ada karya ${kat} yang ditambahkan.</div>`
         : seriList
             .map(
               seri => `
@@ -351,6 +351,13 @@ function resolveThumbnail(item) {
   return null;
 }
 
+// Versi resolusi tinggi untuk ditampilkan penuh di modal (bukan thumbnail kecil)
+function highResImageUrl(item) {
+  const id = driveFileId(item.EmbedLink);
+  if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w2000`;
+  return item.Thumbnail || null;
+}
+
 // Pisahkan nama jadi daftar (untuk karya kelompok, dipisah koma)
 function splitNames(str) {
   return String(str || "")
@@ -389,11 +396,19 @@ function openModal(id) {
   if (!item) return;
 
   const overlay = document.getElementById("modal-overlay");
+  const isImageKategori = item.Kategori === "Infografis" || item.Kategori === "Flyer";
+  const directImgUrl = isImageKategori ? highResImageUrl(item) : null;
   const embedUrl = toEmbeddableUrl(item.EmbedLink);
   const user = currentUser();
   const liked = isLikedByMe(item.ID);
   const likeCount = likeCountFor(item.ID);
   const comments = commentsFor(item.ID).sort((a, b) => new Date(a.Waktu) - new Date(b.Waktu));
+
+  const previewHtml = directImgUrl
+    ? `<div class="frame-loading" id="frame-loading"><span class="spinner"></span> Memuat pratinjau...</div>
+       <img src="${directImgUrl}" alt="${escapeHtml(item.Mahasiswa)}" class="modal-preview-img" onload="document.getElementById('frame-loading')?.remove()" onerror="this.replaceWith(Object.assign(document.createElement('iframe'), {src:'${embedUrl}', allow:'autoplay', allowFullscreen:true, onload:()=>document.getElementById('frame-loading')?.remove()}))">`
+    : `<div class="frame-loading" id="frame-loading"><span class="spinner"></span> Memuat pratinjau...</div>
+       <iframe src="${embedUrl}" allow="autoplay" allowfullscreen onload="document.getElementById('frame-loading')?.remove()"></iframe>`;
 
   overlay.innerHTML = `
     <div class="modal-box modal-box-split">
@@ -407,8 +422,7 @@ function openModal(id) {
       <div class="modal-split-body">
         <div class="modal-preview-col">
           <div class="modal-frame-wrap">
-            <div class="frame-loading" id="frame-loading"><span class="spinner"></span> Memuat pratinjau...</div>
-            <iframe src="${embedUrl}" allow="autoplay" allowfullscreen onload="document.getElementById('frame-loading')?.remove()"></iframe>
+            ${previewHtml}
           </div>
           <div class="modal-footer">
             <a class="btn btn-outline" href="${item.EmbedLink}" target="_blank" rel="noopener">Buka di Drive</a>
@@ -488,10 +502,21 @@ function toEmbeddableUrl(link) {
   return link;
 }
 
+// Buka modal login (di halaman yang sama, overlay burem) alih-alih redirect ke halaman penuh
+function promptLogin() {
+  closeModal();
+  const loginLink = document.getElementById("login-link");
+  if (loginLink) {
+    loginLink.click();
+  } else {
+    document.getElementById("login-overlay").classList.add("open");
+  }
+}
+
 async function toggleLike(item) {
   const user = currentUser();
   if (!user) {
-    window.location.href = "login.html";
+    promptLogin();
     return;
   }
   const btn = document.getElementById("btn-like");
@@ -535,7 +560,7 @@ async function toggleLike(item) {
 async function submitComment(item) {
   const user = currentUser();
   if (!user) {
-    window.location.href = "login.html";
+    promptLogin();
     return;
   }
   const textarea = document.getElementById("comment-text");
