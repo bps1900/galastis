@@ -754,18 +754,67 @@ th { color: var(--abu); font-weight: 600; font-size: 11px; text-transform: upper
 /* ---------- Responsive ---------- */
 
 @media (max-width: 720px) {
-  .layout { grid-template-columns: 1fr; }
+  html:has(.layout), body:has(.layout) { height: auto; overflow: visible; }
+  .layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
   .sidebar {
     display: flex;
+    flex-direction: row;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border-right: none;
     border-bottom: 1px solid var(--garis);
-    padding: 12px;
+    padding: 10px 12px;
     gap: 8px;
   }
   .sidebar-label, .sidebar-divider { display: none; }
-  .cat-btn, .leaderboard-link { width: auto; white-space: nowrap; }
-  .main { padding: 0 16px 50px; }
-  .app-header { padding: 20px; flex-wrap: wrap; }
-  .modal-frame-wrap iframe { height: 40vh; }
+  .cat-btn, .leaderboard-link { width: auto; white-space: nowrap; flex-shrink: 0; }
+  .main { padding: 0 14px 40px; overflow-y: visible; }
+  .katalog-header { top: 0; padding-top: 16px; }
+
+  .app-header {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .brand { gap: 10px; }
+  .brand-logo { width: 32px; height: 32px; }
+  .brand-text h1 { font-size: 16.5px; }
+  .brand-text p { font-size: 11px; line-height: 1.35; }
+  .header-actions { gap: 8px; }
+  .header-actions a, .header-actions button { font-size: 12px; padding: 8px 12px; }
+  .header-user { font-size: 12px; }
+
+  .section-title h2 { font-size: 20px; }
+  .section-sub { font-size: 13px; margin-bottom: 16px; }
+  .seri-tab { font-size: 11px; padding: 5px 11px; }
+
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .card-title { font-size: 13px; }
+  .card-body { padding: 10px 11px 12px; }
+
+  .modal-box-split { width: 100%; height: 94vh; border-radius: 14px; }
+  .modal-split-body { grid-template-columns: 1fr; }
+  .modal-preview-col { border-right: none; border-bottom: 1px solid var(--garis); }
+  .modal-preview-col .modal-frame-wrap { height: 34vh; flex: none; }
+  .modal-side-col { max-height: 48vh; }
+  .modal-frame-wrap iframe { height: 34vh; }
+  .modal-header { padding: 14px 16px; }
+  .modal-header h3 { font-size: 15px; }
+  .social-bar { padding: 12px 16px; flex-wrap: wrap; }
+  .comment-section { padding: 4px 16px 16px; }
+  .comment-form { flex-direction: column; }
+  .comment-form textarea { min-height: 60px; }
+
+  .login-wrap { min-height: calc(100vh - 90px); height: auto; padding: 20px 16px; }
+  .login-box { padding: 24px 20px 20px; }
+
+  .admin-wrap-wide { padding: 10px; }
+  .form-grid { grid-template-columns: 1fr !important; }
+  .admin-grid { grid-template-columns: 1fr; }
+  .row-actions { flex-wrap: wrap; }
+}
+
+@media (max-width: 380px) {
+  .brand-text p { display: none; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
 }
