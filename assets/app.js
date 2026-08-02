@@ -1,5 +1,5 @@
 // ====== KONFIGURASI ======
-const API_URL = "https://script.google.com/macros/s/AKfycbxxwqnB9rvuoGjVNcMeH-IHLW7cWjRd0uGAVVnI_FQY3wOya4k5XiwUcu6Rgmcn6lfbXw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw4-Fi9SaSTB1Ain86-9xEGVjqLmLtnjXGv1jf-BZI79yKDTE39F5PdWPCfrFYCe6ZABQ/exec";
 
 const KATEGORI = [
   { key: "Infografis", label: "Infografis", icon: iconChart() },
