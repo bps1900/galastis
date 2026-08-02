@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Galastis</title>
+<link rel="icon" type="image/x-icon" href="logo.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <img src="logo.ico" alt="Logo Galastis" class="brand-logo">
+    <div class="brand-text">
+      <h1>Galastis</h1>
+      <p>Galeri Karya Magang Eksplorasi Data Statistik — BPS Provinsi Kepulauan Bangka Belitung</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <a href="index.html">Lihat Galeri</a>
+  </div>
+</header>
+
+<div class="login-wrap">
+  <div class="login-box">
+    <h2>Login</h2>
+    <p style="color:var(--abu); font-size:13.5px; margin-top:-6px;">Masuk sebagai pegawai untuk like &amp; komentar, atau sebagai admin untuk kelola konten.</p>
+
+    <div class="login-tabs">
+      <button class="login-tab active" data-tab="pegawai">Pegawai</button>
+      <button class="login-tab" data-tab="admin">Admin</button>
+    </div>
+
+    <div class="login-panel active" id="panel-pegawai">
+      <label>Pilih Nama</label>
+      <select id="p-nama"><option value="">Memuat daftar pegawai...</option></select>
+      <label>NIP</label>
+      <input type="text" id="p-nip" placeholder="Masukkan NIP Anda">
+      <button class="btn btn-primary" style="width:100%; margin-top:12px;" id="btn-login-pegawai">Masuk sebagai Pegawai</button>
+    </div>
+
+    <div class="login-panel" id="panel-admin">
+      <label>Password Admin</label>
+      <input type="password" id="a-password" placeholder="Password admin">
+      <button class="btn btn-primary" style="width:100%; margin-top:12px;" id="btn-login-admin">Masuk sebagai Admin</button>
+    </div>
+
+    <p class="status-msg" id="login-msg"></p>
+  </div>
+</div>
+
+<script src="assets/app-login.js"></script>
+</body>
+</html>

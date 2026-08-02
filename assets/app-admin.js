@@ -2,19 +2,25 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxxwqnB9rvuoGjVNcMeH-IH
 
 let ADMIN_SECRET_INPUT = "";
 
-document.getElementById("btn-login").addEventListener("click", login);
-document.getElementById("admin-password").addEventListener("keydown", e => {
-  if (e.key === "Enter") login();
+document.addEventListener("DOMContentLoaded", init);
+document.getElementById("btn-logout").addEventListener("click", () => {
+  sessionStorage.removeItem("galastis_user");
+  window.location.href = "login.html";
 });
 
-function login() {
-  const pass = document.getElementById("admin-password").value;
-  if (!pass) return;
-  ADMIN_SECRET_INPUT = pass;
-  // Password akan divalidasi oleh Apps Script saat aksi pertama (tambah/hapus) dijalankan.
+function init() {
+  const raw = sessionStorage.getItem("galastis_user");
+  const user = raw ? JSON.parse(raw) : null;
+  if (!user || user.role !== "admin") {
+    document.getElementById("login-view").style.display = "block";
+    document.getElementById("admin-view").style.display = "none";
+    return;
+  }
+  ADMIN_SECRET_INPUT = user.secret;
   document.getElementById("login-view").style.display = "none";
   document.getElementById("admin-view").style.display = "block";
   loadKontenTable();
+  loadPegawaiTable();
 }
 
 document.getElementById("btn-add").addEventListener("click", async () => {
@@ -51,13 +57,20 @@ document.getElementById("btn-add").addEventListener("click", async () => {
 document.getElementById("btn-add-pegawai").addEventListener("click", async () => {
   const msg = document.getElementById("pegawai-msg");
   const nama = val("f-pegawai");
-  if (!nama) return;
+  const nip = val("f-nip");
+  if (!nama || !nip) {
+    msg.textContent = "Nama dan NIP wajib diisi.";
+    msg.className = "status-msg err";
+    return;
+  }
   try {
-    const json = await postApi({ action: "addPegawai", secret: ADMIN_SECRET_INPUT, nama });
+    const json = await postApi({ action: "addPegawai", secret: ADMIN_SECRET_INPUT, nama, nip });
     if (json.error) throw new Error(json.error);
     msg.textContent = `Pegawai "${nama}" ditambahkan.`;
     msg.className = "status-msg ok";
     document.getElementById("f-pegawai").value = "";
+    document.getElementById("f-nip").value = "";
+    loadPegawaiTable();
   } catch (err) {
     msg.textContent = err.message;
     msg.className = "status-msg err";
@@ -95,6 +108,29 @@ async function loadKontenTable() {
     });
   } catch (err) {
     wrap.innerHTML = `<p class="status-msg err">${err.message}</p>`;
+  }
+}
+
+async function loadPegawaiTable() {
+  const wrap = document.getElementById("pegawai-table");
+  try {
+    const res = await fetch(`${API_URL}?action=getData`);
+    const json = await res.json();
+    const items = json.pegawai || [];
+    if (items.length === 0) {
+      wrap.innerHTML = `<p style="color:var(--abu); font-size:13px;">Belum ada pegawai.</p>`;
+      return;
+    }
+    wrap.innerHTML = `
+      <table>
+        <thead><tr><th>Nama</th><th>NIP</th></tr></thead>
+        <tbody>
+          ${items.map(p => `<tr><td>${p.Nama}</td><td>${p.NIP}</td></tr>`).join("")}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    wrap.innerHTML = "";
   }
 }
 

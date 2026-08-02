@@ -8,36 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
-<style>
-  .admin-wrap { max-width: 760px; margin: 0 auto; padding: 34px 20px 70px; }
-  .login-box {
-    max-width: 380px; margin: 90px auto; background: #fff; border: 1px solid var(--garis);
-    border-radius: var(--radius); padding: 30px; text-align: center;
-  }
-  .login-box h2 { font-family: var(--font-display); margin-top: 0; }
-  .login-box input {
-    width: 100%; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--garis);
-    margin: 14px 0; font-size: 14px; font-family: var(--font-body);
-  }
-  .panel { background: #fff; border: 1px solid var(--garis); border-radius: var(--radius); padding: 22px; margin-bottom: 22px; }
-  .panel h3 { font-family: var(--font-display); margin-top: 0; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-  .form-grid.full { grid-template-columns: 1fr; }
-  label { font-size: 12.5px; font-weight: 600; color: var(--abu); display: block; margin-bottom: 5px; }
-  input, select, textarea {
-    width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--garis);
-    font-family: var(--font-body); font-size: 13.5px; background: var(--kertas);
-  }
-  textarea { resize: vertical; min-height: 60px; }
-  .row-actions { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
-  .status-msg { font-size: 13px; margin-top: 8px; }
-  .status-msg.ok { color: var(--hijau); }
-  .status-msg.err { color: #C0392B; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--garis); }
-  th { color: var(--abu); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-  .del-btn { border: none; background: var(--oren-muda); color: var(--oren); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 12px; font-weight: 600; }
-</style>
 </head>
 <body>
 
@@ -51,15 +21,16 @@
   </div>
   <div class="header-actions">
     <a href="index.html">Lihat Galeri</a>
+    <button id="btn-logout">Logout</button>
   </div>
 </header>
 
-<div id="login-view" class="login-box">
-  <h2>Masuk Admin</h2>
-  <p style="color:var(--abu); font-size:13.5px;">Masukkan password admin untuk mengelola konten.</p>
-  <input type="password" id="admin-password" placeholder="Password admin">
-  <button class="btn btn-primary" style="width:100%" id="btn-login">Masuk</button>
-  <p class="status-msg err" id="login-msg"></p>
+<div id="login-view" class="login-wrap" style="display:none;">
+  <div class="login-box">
+    <h2>Masuk Admin</h2>
+    <p style="color:var(--abu); font-size:13.5px;">Halaman ini khusus admin. Silakan login.</p>
+    <a href="login.html" class="btn btn-primary" style="width:100%; display:block; box-sizing:border-box; text-decoration:none;">Ke Halaman Login</a>
+  </div>
 </div>
 
 <div id="admin-view" class="admin-wrap" style="display:none;">
@@ -104,12 +75,22 @@
   </div>
 
   <div class="panel">
-    <h3>Tambah Nama Pegawai (untuk pilihan voting)</h3>
+    <h3>Tambah Pegawai (untuk login &amp; like/komentar)</h3>
     <div class="form-grid">
-      <div><input id="f-pegawai" placeholder="Nama pegawai"></div>
-      <div><button class="btn btn-secondary" id="btn-add-pegawai">Tambah Pegawai</button></div>
+      <div>
+        <label>Nama Pegawai</label>
+        <input id="f-pegawai" placeholder="Nama pegawai">
+      </div>
+      <div>
+        <label>NIP</label>
+        <input id="f-nip" placeholder="NIP pegawai">
+      </div>
     </div>
-    <p class="status-msg" id="pegawai-msg"></p>
+    <div class="row-actions">
+      <button class="btn btn-secondary" id="btn-add-pegawai">Tambah Pegawai</button>
+      <p class="status-msg" id="pegawai-msg"></p>
+    </div>
+    <div id="pegawai-table" style="margin-top:14px;"></div>
   </div>
 
   <div class="panel">
