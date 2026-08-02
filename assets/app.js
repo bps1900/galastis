@@ -397,7 +397,9 @@ function openModal(id) {
 
   const overlay = document.getElementById("modal-overlay");
   const isImageKategori = item.Kategori === "Infografis" || item.Kategori === "Flyer";
+  const driveId = driveFileId(item.EmbedLink);
   const directImgUrl = isImageKategori ? highResImageUrl(item) : null;
+  const fallbackThumbUrl = driveId ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w2000` : null;
   const embedUrl = toEmbeddableUrl(item.EmbedLink);
   const user = currentUser();
   const liked = isLikedByMe(item.ID);
@@ -406,7 +408,7 @@ function openModal(id) {
 
   const previewHtml = directImgUrl
     ? `<div class="frame-loading" id="frame-loading"><span class="spinner"></span> Memuat pratinjau...</div>
-       <img src="${directImgUrl}" alt="${escapeHtml(item.Mahasiswa)}" class="modal-preview-img" onload="document.getElementById('frame-loading')?.remove()" onerror="this.replaceWith(Object.assign(document.createElement('iframe'), {src:'${embedUrl}', allow:'autoplay', allowFullscreen:true, onload:()=>document.getElementById('frame-loading')?.remove()}))">`
+       <img src="${directImgUrl}" alt="${escapeHtml(item.Mahasiswa)}" class="modal-preview-img" id="modal-preview-img" data-fallback-thumb="${fallbackThumbUrl || ""}" data-embed-url="${embedUrl}">`
     : `<div class="frame-loading" id="frame-loading"><span class="spinner"></span> Memuat pratinjau...</div>
        <iframe src="${embedUrl}" allow="autoplay" allowfullscreen onload="document.getElementById('frame-loading')?.remove()"></iframe>`;
 
@@ -474,8 +476,11 @@ function openModal(id) {
   overlay.classList.add("open");
   document.getElementById("modal-close").addEventListener("click", closeModal);
   overlay.addEventListener("click", e => { if (e.target === overlay) closeModal(); });
-  const previewImg = overlay.querySelector(".modal-preview-img");
-  if (previewImg) setupImageZoom(previewImg);
+  const previewImg = document.getElementById("modal-preview-img");
+  if (previewImg) {
+    setupImagePreviewFallback(previewImg);
+    setupImageZoom(previewImg);
+  }
   const loginLink = document.getElementById("modal-login-link");
   if (loginLink) {
     loginLink.addEventListener("click", e => {
@@ -493,6 +498,28 @@ function openModal(id) {
 function closeModal() {
   document.getElementById("modal-overlay").classList.remove("open");
   document.getElementById("modal-overlay").innerHTML = "";
+}
+
+// Rantai fallback: link resolusi tinggi -> thumbnail besar -> iframe Drive
+function setupImagePreviewFallback(img) {
+  img.addEventListener("load", () => {
+    document.getElementById("frame-loading")?.remove();
+  });
+  img.addEventListener("error", () => {
+    const fallbackThumb = img.dataset.fallbackThumb;
+    const embedUrl = img.dataset.embedUrl;
+    if (fallbackThumb && img.src !== fallbackThumb) {
+      img.src = fallbackThumb;
+      return;
+    }
+    // Sudah coba semua opsi gambar langsung, fallback ke iframe Drive
+    const iframe = document.createElement("iframe");
+    iframe.src = embedUrl;
+    iframe.setAttribute("allow", "autoplay");
+    iframe.setAttribute("allowfullscreen", "true");
+    iframe.addEventListener("load", () => document.getElementById("frame-loading")?.remove());
+    img.replaceWith(iframe);
+  });
 }
 
 // Zoom pakai scroll mouse (bebas sesuka hati) + geser (drag) saat sudah di-zoom
