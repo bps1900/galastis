@@ -32,6 +32,9 @@ function doPost(e) {
       case "addKonten":
         requireAdmin(body);
         return jsonOut(addKonten(body));
+      case "updateKonten":
+        requireAdmin(body);
+        return jsonOut(updateKonten(body));
       case "deleteKonten":
         requireAdmin(body);
         return jsonOut(deleteKonten(body));
@@ -93,6 +96,22 @@ function addKonten(body) {
   const id = Utilities.getUuid().slice(0, 8);
   sheet.appendRow([id, body.kategori, body.seri, body.mahasiswa, body.embedLink, body.thumbnail || ""]);
   return { ok: true, id: id };
+}
+
+function updateKonten(body) {
+  const sheet = getSheet("Konten");
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(body.id)) {
+      sheet.getRange(i + 1, 2).setValue(body.kategori);
+      sheet.getRange(i + 1, 3).setValue(body.seri);
+      sheet.getRange(i + 1, 4).setValue(body.mahasiswa);
+      sheet.getRange(i + 1, 5).setValue(body.embedLink);
+      sheet.getRange(i + 1, 6).setValue(body.thumbnail || "");
+      return { ok: true };
+    }
+  }
+  return { error: "Karya tidak ditemukan." };
 }
 
 function deleteKonten(body) {
