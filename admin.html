@@ -80,17 +80,12 @@
     </div>
 
     <div class="panel" style="flex:1; min-height:0; display:flex; flex-direction:column;">
-      <h3 style="flex-shrink:0;">Daftar Karya Tersimpan</h3>
-      <div id="konten-table" style="flex:1; overflow-y:auto;">Memuat...</div>
-    </div>
-
-    <div class="panel" style="flex-shrink:0;">
-      <h3>Sync dari Pengumpulan</h3>
-      <p style="color:var(--abu); font-size:12px; margin-top:-6px; margin-bottom:10px;">Tarik otomatis data dari sheet O1–O4 ke galeri. Data yang sudah ada tidak akan duplikat.</p>
-      <div class="row-actions">
-        <button class="btn btn-secondary" id="btn-sync">⟳ Sync Sekarang</button>
-        <p class="status-msg" id="sync-msg"></p>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
+        <h3 style="margin:0;">Daftar Karya Tersimpan</h3>
+        <button class="btn btn-secondary" id="btn-sync" title="Sync dari Pengumpulan (sheet O1–O4)" style="flex-shrink:0;">⟳ Sync</button>
       </div>
+      <p class="status-msg" id="sync-msg"></p>
+      <div id="konten-table" style="flex:1; overflow-y:auto;">Memuat...</div>
     </div>
   </div>
 
