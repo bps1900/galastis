@@ -165,24 +165,20 @@ async function loadKontenTable() {
       return;
     }
     wrap.innerHTML = `
-      <table>
-        <thead><tr><th>Kategori</th><th>Seri</th><th>Mahasiswa</th><th></th></tr></thead>
-        <tbody>
-          ${items.map(i => `
-            <tr>
-              <td>${i.Kategori}</td>
-              <td>${i.Seri}</td>
-              <td>${i.Mahasiswa || ""}</td>
-              <td style="white-space:nowrap;">
-                <button class="edit-btn" data-id="${i.ID}">Edit</button>
-                <button class="del-btn" data-id="${i.ID}" style="margin-left:4px;">Hapus</button>
-              </td>
-            </tr>`).join("")}
-        </tbody>
-      </table>
+      <div class="admin-grid">
+        ${items.map(i => `
+          <div class="admin-card">
+            <div class="admin-card-info">
+              <span class="admin-card-badge">${i.Kategori} · Seri ${i.Seri}</span>
+              <p class="admin-card-name">${i.Mahasiswa || "-"}</p>
+            </div>
+            <div class="admin-card-actions">
+              <button class="edit-btn" data-id="${i.ID}">Edit</button>
+              <button class="del-btn" data-id="${i.ID}">Hapus</button>
+            </div>
+          </div>`).join("")}
+      </div>
     `;
-    // Simpan data items untuk dipakai saat edit
-    wrap._items = items;
     wrap.querySelectorAll(".edit-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const item = items.find(i => String(i.ID) === String(btn.dataset.id));
@@ -208,16 +204,18 @@ async function loadPegawaiTable() {
       return;
     }
     wrap.innerHTML = `
-      <table>
-        <thead><tr><th>Nama</th><th>NIP</th><th></th></tr></thead>
-        <tbody>
-          ${items.map(p => `
-            <tr>
-              <td>${p.Nama}</td><td>${p.NIP}</td>
-              <td><button class="del-btn" data-nip="${p.NIP}">Hapus</button></td>
-            </tr>`).join("")}
-        </tbody>
-      </table>
+      <div class="admin-grid">
+        ${items.map(p => `
+          <div class="admin-card">
+            <div class="admin-card-info">
+              <p class="admin-card-name">${p.Nama}</p>
+              <span class="admin-card-badge">${p.NIP}</span>
+            </div>
+            <div class="admin-card-actions">
+              <button class="del-btn" data-nip="${p.NIP}">Hapus</button>
+            </div>
+          </div>`).join("")}
+      </div>
     `;
     wrap.querySelectorAll(".del-btn").forEach(btn => {
       btn.addEventListener("click", () => deletePegawai(btn.dataset.nip));

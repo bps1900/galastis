@@ -647,6 +647,38 @@ body:has(.admin-wrap-wide) { height: 100vh; overflow: hidden; }
 .panel textarea { resize: vertical; min-height: 50px; }
 .row-actions { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
 .admin-col .btn { font-size: 12.5px; padding: 8px 14px; }
+
+/* Admin grid cards */
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-bottom: 4px;
+}
+.admin-card {
+  border: 1px solid var(--garis);
+  border-radius: 10px;
+  padding: 9px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--kertas);
+}
+.admin-card-info { min-width: 0; flex: 1; }
+.admin-card-name {
+  margin: 0 0 2px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-card-badge {
+  font-size: 10.5px;
+  color: var(--abu);
+}
+.admin-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
 table { width: 100%; border-collapse: collapse; font-size: 12px; }
 th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--garis); }
 th { color: var(--abu); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
