@@ -10,32 +10,11 @@ document.querySelectorAll(".login-tab").forEach(tab => {
   });
 });
 
-loadPegawaiOptions();
-
-async function loadPegawaiOptions() {
-  const sel = document.getElementById("p-nama");
-  try {
-    const res = await fetch(`${API_URL}?action=getData`);
-    const json = await res.json();
-    const pegawai = json.pegawai || [];
-    if (pegawai.length === 0) {
-      sel.innerHTML = `<option value="">Belum ada data pegawai</option>`;
-      return;
-    }
-    sel.innerHTML =
-      `<option value="">Pilih nama Anda...</option>` +
-      pegawai.map(p => `<option value="${p.NIP}">${p.Nama}</option>`).join("");
-  } catch (err) {
-    sel.innerHTML = `<option value="">Gagal memuat daftar pegawai</option>`;
-  }
-}
-
 document.getElementById("btn-login-pegawai").addEventListener("click", async () => {
   const msg = document.getElementById("login-msg");
-  const nama = document.getElementById("p-nama");
   const nip = document.getElementById("p-nip").value.trim();
-  if (!nama.value || !nip) {
-    msg.textContent = "Pilih nama dan masukkan NIP Anda.";
+  if (!nip) {
+    msg.textContent = "Masukkan NIP Anda.";
     msg.className = "status-msg err";
     return;
   }
