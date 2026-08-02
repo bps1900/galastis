@@ -617,9 +617,10 @@ body:has(.admin-wrap-wide) { height: 100vh; overflow: hidden; }
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   height: calc(100vh - 72px);
-  padding: 14px 20px;
+  padding: 14px 16px;
   overflow: hidden;
   box-sizing: border-box;
+  width: 100%;
 }
 .admin-col {
   display: flex;
@@ -629,7 +630,7 @@ body:has(.admin-wrap-wide) { height: 100vh; overflow: hidden; }
   min-height: 0;
   overflow: hidden;
 }
-.admin-col .panel { margin-bottom: 0; }
+.admin-col .panel { margin-bottom: 0; overflow-x: hidden; }
 @media (max-width: 900px) {
   body:has(.admin-wrap-wide) { height: auto; overflow: visible; }
   .admin-wrap-wide { grid-template-columns: 1fr; height: auto; overflow: visible; padding: 12px; }
@@ -654,6 +655,7 @@ body:has(.admin-wrap-wide) { height: 100vh; overflow: hidden; }
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   padding-bottom: 4px;
+  overflow-x: hidden;
 }
 .admin-card {
   border: 1px solid var(--garis);
@@ -664,8 +666,9 @@ body:has(.admin-wrap-wide) { height: 100vh; overflow: hidden; }
   justify-content: space-between;
   gap: 8px;
   background: var(--kertas);
+  min-width: 0;
 }
-.admin-card-info { min-width: 0; flex: 1; }
+.admin-card-info { min-width: 0; flex: 1; overflow: hidden; }
 .admin-card-name {
   margin: 0 0 2px;
   font-size: 12.5px;
@@ -677,6 +680,10 @@ body:has(.admin-wrap-wide) { height: 100vh; overflow: hidden; }
 .admin-card-badge {
   font-size: 10.5px;
   color: var(--abu);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .admin-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
 table { width: 100%; border-collapse: collapse; font-size: 12px; }
