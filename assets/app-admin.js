@@ -18,7 +18,7 @@ function init() {
   }
   ADMIN_SECRET_INPUT = user.secret;
   document.getElementById("login-view").style.display = "none";
-  document.getElementById("admin-view").style.display = "block";
+  document.getElementById("admin-view").style.display = "grid";
   loadKontenTable();
   loadPegawaiTable();
 }

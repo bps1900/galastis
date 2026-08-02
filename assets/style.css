@@ -577,13 +577,21 @@ body:has(.login-wrap) { height: 100vh; overflow: hidden; }
   display: flex;
   align-items: center;
   justify-content: center;
-  height: calc(100vh - 78px); /* dikurangi tinggi header */
+  height: calc(100vh - 78px);
   box-sizing: border-box;
+}
+
+/* Login box di dalam modal overlay */
+#login-overlay .login-box {
+  max-width: 400px;
+  width: 100%;
+  margin: 0;
 }
 .login-box {
   background: #fff; border: 1px solid var(--garis); width: 100%;
-  border-radius: var(--radius); padding: 22px 26px; text-align: center;
+  border-radius: var(--radius); padding: 28px 28px 24px; text-align: center;
   max-height: 100%; overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(11,61,102,0.13);
 }
 .login-box h2 { font-family: var(--font-display); margin: 0 0 4px; font-size: 21px; }
 .login-box input, .login-box select {
