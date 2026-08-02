@@ -5,12 +5,12 @@ let editingId = null; // null = mode tambah, ada id = mode edit
 
 document.addEventListener("DOMContentLoaded", init);
 document.getElementById("btn-logout").addEventListener("click", () => {
-  sessionStorage.removeItem("galastis_user");
+  sessionStorage.removeItem("gamma_user");
   window.location.href = "index.html";
 });
 
 function init() {
-  const raw = sessionStorage.getItem("galastis_user");
+  const raw = sessionStorage.getItem("gamma_user");
   const user = raw ? JSON.parse(raw) : null;
   if (!user || user.role !== "admin") {
     document.getElementById("login-view").style.display = "block";
@@ -147,7 +147,7 @@ function resetForm() {
 
 document.getElementById("btn-sync").addEventListener("click", async () => {
   const msg = document.getElementById("sync-msg");
-  if (!confirm("Sync data dari sheet O1-O4 ke Galastis? Data yang sudah ada tidak akan duplikat.")) return;
+  if (!confirm("Sync data dari sheet O1-O4 ke Gamma? Data yang sudah ada tidak akan duplikat.")) return;
   msg.textContent = "Sedang sync...";
   msg.className = "status-msg";
   try {

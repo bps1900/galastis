@@ -15,7 +15,7 @@ let STATE = {
 };
 
 function currentUser() {
-  const raw = sessionStorage.getItem("galastis_user");
+  const raw = sessionStorage.getItem("gamma_user");
   if (!raw) return null;
   const u = JSON.parse(raw);
   return u.role === "pegawai" ? u : null;
@@ -88,7 +88,7 @@ function setupLoginModal() {
       });
       const json = await res.json();
       if (!json.error) {
-        sessionStorage.setItem("galastis_user", JSON.stringify({ role: "admin", secret: val }));
+        sessionStorage.setItem("gamma_user", JSON.stringify({ role: "admin", secret: val }));
         window.location.href = "admin.html";
         return;
       }
@@ -102,7 +102,7 @@ function setupLoginModal() {
       });
       const json = await res.json();
       if (json.error) throw new Error(json.error);
-      sessionStorage.setItem("galastis_user", JSON.stringify({
+      sessionStorage.setItem("gamma_user", JSON.stringify({
         role: "pegawai", nama: json.nama, nip: json.nip
       }));
       overlay.classList.remove("open");
@@ -124,7 +124,7 @@ function setupLoginModal() {
 function renderHeader() {
   const wrap = document.getElementById("header-actions");
   const user = currentUser();
-  const rawAdmin = sessionStorage.getItem("galastis_user");
+  const rawAdmin = sessionStorage.getItem("gamma_user");
   const isAdmin = rawAdmin && JSON.parse(rawAdmin).role === "admin";
 
   if (user) {
@@ -133,7 +133,7 @@ function renderHeader() {
       <button id="btn-logout">Logout</button>
     `;
     document.getElementById("btn-logout").addEventListener("click", () => {
-      sessionStorage.removeItem("galastis_user");
+      sessionStorage.removeItem("gamma_user");
       renderHeader();
     });
   } else if (isAdmin) {
@@ -142,7 +142,7 @@ function renderHeader() {
       <button id="btn-logout">Logout</button>
     `;
     document.getElementById("btn-logout").addEventListener("click", () => {
-      sessionStorage.removeItem("galastis_user");
+      sessionStorage.removeItem("gamma_user");
       renderHeader();
     });
   } else {

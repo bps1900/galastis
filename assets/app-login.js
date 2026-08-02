@@ -19,7 +19,7 @@ async function doLogin() {
     });
     const json = await res.json();
     if (!json.error) {
-      sessionStorage.setItem("galastis_user", JSON.stringify({ role: "admin", secret: val }));
+      sessionStorage.setItem("gamma_user", JSON.stringify({ role: "admin", secret: val }));
       window.location.href = "admin.html";
       return;
     }
@@ -33,7 +33,7 @@ async function doLogin() {
     });
     const json = await res.json();
     if (json.error) throw new Error(json.error);
-    sessionStorage.setItem("galastis_user", JSON.stringify({
+    sessionStorage.setItem("gamma_user", JSON.stringify({
       role: "pegawai", nama: json.nama, nip: json.nip
     }));
     window.location.href = "index.html";
