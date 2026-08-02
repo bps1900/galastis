@@ -602,18 +602,32 @@ body:has(.login-wrap) { height: 100vh; overflow: hidden; }
 
 /* ---------- Admin ---------- */
 
+body:has(.admin-wrap-wide) { height: 100vh; overflow: hidden; }
 .admin-wrap { max-width: 760px; margin: 0 auto; padding: 34px 20px 70px; }
 .admin-wrap-wide {
-  max-width: 1200px;
+  max-width: 1300px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 22px;
-  align-items: start;
+  align-items: stretch;
+  height: calc(100vh - 80px);
+  padding-bottom: 20px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
-.admin-col { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
-.admin-col .panel { margin-bottom: 0; }
+.admin-col {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.admin-col .panel { margin-bottom: 0; flex-shrink: 0; }
 @media (max-width: 900px) {
-  .admin-wrap-wide { grid-template-columns: 1fr; }
+  body:has(.admin-wrap-wide) { height: auto; overflow: visible; }
+  .admin-wrap-wide { grid-template-columns: 1fr; height: auto; overflow: visible; }
+  .admin-col { overflow: visible; }
 }
 .panel { background: #fff; border: 1px solid var(--garis); border-radius: var(--radius); padding: 22px; margin-bottom: 22px; }
 .panel h3 { font-family: var(--font-display); margin-top: 0; }
