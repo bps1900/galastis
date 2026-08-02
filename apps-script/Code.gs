@@ -38,6 +38,9 @@ function doPost(e) {
       case "addPegawai":
         requireAdmin(body);
         return jsonOut(addPegawai(body));
+      case "deletePegawai":
+        requireAdmin(body);
+        return jsonOut(deletePegawai(body));
       case "toggleLike":
         return jsonOut(toggleLike(body));
       case "addComment":
@@ -114,6 +117,18 @@ function addPegawai(body) {
   }
   sheet.appendRow([body.nama, body.nip]);
   return { ok: true };
+}
+
+function deletePegawai(body) {
+  const sheet = getSheet("Pegawai");
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][1]) === String(body.nip)) {
+      sheet.deleteRow(i + 1);
+      return { ok: true };
+    }
+  }
+  return { error: "Pegawai tidak ditemukan." };
 }
 
 function toggleLike(body) {

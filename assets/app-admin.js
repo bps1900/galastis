@@ -123,14 +123,35 @@ async function loadPegawaiTable() {
     }
     wrap.innerHTML = `
       <table>
-        <thead><tr><th>Nama</th><th>NIP</th></tr></thead>
+        <thead><tr><th>Nama</th><th>NIP</th><th></th></tr></thead>
         <tbody>
-          ${items.map(p => `<tr><td>${p.Nama}</td><td>${p.NIP}</td></tr>`).join("")}
+          ${items
+            .map(
+              p => `<tr>
+                <td>${p.Nama}</td><td>${p.NIP}</td>
+                <td><button class="del-btn" data-nip="${p.NIP}">Hapus</button></td>
+              </tr>`
+            )
+            .join("")}
         </tbody>
       </table>
     `;
+    wrap.querySelectorAll(".del-btn").forEach(btn => {
+      btn.addEventListener("click", () => deletePegawai(btn.dataset.nip));
+    });
   } catch (err) {
-    wrap.innerHTML = "";
+    wrap.innerHTML = `<p class="status-msg err">${err.message}</p>`;
+  }
+}
+
+async function deletePegawai(nip) {
+  if (!confirm("Hapus pegawai ini? Like dan komentar yang sudah dibuat tidak akan terhapus.")) return;
+  try {
+    const json = await postApi({ action: "deletePegawai", secret: ADMIN_SECRET_INPUT, nip });
+    if (json.error) throw new Error(json.error);
+    loadPegawaiTable();
+  } catch (err) {
+    alert(err.message);
   }
 }
 

@@ -33,69 +33,81 @@
   </div>
 </div>
 
-<div id="admin-view" class="admin-wrap" style="display:none;">
+<div id="admin-view" class="admin-wrap admin-wrap-wide" style="display:none;">
 
-  <div class="panel">
-    <h3>Tambah Karya Baru</h3>
-    <div class="form-grid">
-      <div>
-        <label>Kategori</label>
-        <select id="f-kategori">
-          <option>Infografis</option>
-          <option>Videografis</option>
-          <option>Flyer</option>
-          <option>Join Riset</option>
-        </select>
+  <div class="admin-col">
+    <div class="panel">
+      <h3>Tambah Karya Baru</h3>
+      <div class="form-grid">
+        <div>
+          <label>Kategori</label>
+          <select id="f-kategori">
+            <option>Infografis</option>
+            <option>Videografis</option>
+            <option>Flyer</option>
+            <option>Join Riset</option>
+          </select>
+        </div>
+        <div>
+          <label>Seri (bebas, boleh angka/nama)</label>
+          <input id="f-seri" placeholder="Contoh: 1, 2, atau &quot;Ekonomi&quot;">
+        </div>
       </div>
-      <div>
-        <label>Seri (bebas, boleh angka/nama)</label>
-        <input id="f-seri" placeholder="Contoh: 1, 2, atau &quot;Ekonomi&quot;">
+      <div class="form-grid full">
+        <div>
+          <label>Nama Mahasiswa</label>
+          <input id="f-mahasiswa" placeholder="Nama mahasiswa (jika kelompok, pisahkan dengan koma, atau isi Kelompok 1)">
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div>
+          <label>Link Google Drive (share link file/folder)</label>
+          <input id="f-embed" placeholder="https://drive.google.com/file/d/....">
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div>
+          <label>Link Thumbnail (opsional — kosongkan untuk ambil otomatis dari Drive)</label>
+          <input id="f-thumb" placeholder="https://... (opsional)">
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="btn btn-primary" id="btn-add">Tambah Karya</button>
+        <p class="status-msg" id="add-msg"></p>
       </div>
     </div>
-    <div class="form-grid">
-      <div>
-        <label>Nama Mahasiswa</label>
-        <input id="f-mahasiswa" placeholder="Nama mahasiswa (jika kelompok, pisahkan dengan koma)">
-      </div>
-      <div>
-        <label>Link Google Drive (share link file/folder)</label>
-        <input id="f-embed" placeholder="https://drive.google.com/file/d/....">
-      </div>
-    </div>
-    <div class="form-grid">
-      <div>
-        <label>Link Thumbnail (opsional — kosongkan untuk ambil otomatis dari Drive)</label>
-        <input id="f-thumb" placeholder="https://... (opsional)">
-      </div>
-    </div>
-    <div class="row-actions">
-      <button class="btn btn-primary" id="btn-add">Tambah Karya</button>
-      <p class="status-msg" id="add-msg"></p>
+
+    <div class="panel">
+      <h3>Daftar Karya Tersimpan</h3>
+      <div id="konten-table">Memuat...</div>
     </div>
   </div>
 
-  <div class="panel">
-    <h3>Tambah Pegawai (untuk login &amp; like/komentar)</h3>
-    <div class="form-grid">
-      <div>
-        <label>Nama Pegawai</label>
-        <input id="f-pegawai" placeholder="Nama pegawai">
+  <div class="admin-col">
+    <div class="panel">
+      <h3>Tambah Pegawai (untuk login &amp; like/komentar)</h3>
+      <div class="form-grid full">
+        <div>
+          <label>Nama Pegawai</label>
+          <input id="f-pegawai" placeholder="Nama pegawai">
+        </div>
       </div>
-      <div>
-        <label>NIP</label>
-        <input id="f-nip" placeholder="NIP pegawai">
+      <div class="form-grid full">
+        <div>
+          <label>NIP</label>
+          <input id="f-nip" placeholder="NIP pegawai">
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="btn btn-secondary" id="btn-add-pegawai">Tambah Pegawai</button>
+        <p class="status-msg" id="pegawai-msg"></p>
       </div>
     </div>
-    <div class="row-actions">
-      <button class="btn btn-secondary" id="btn-add-pegawai">Tambah Pegawai</button>
-      <p class="status-msg" id="pegawai-msg"></p>
-    </div>
-    <div id="pegawai-table" style="margin-top:14px;"></div>
-  </div>
 
-  <div class="panel">
-    <h3>Daftar Karya Tersimpan</h3>
-    <div id="konten-table">Memuat...</div>
+    <div class="panel">
+      <h3>Daftar Pegawai</h3>
+      <div id="pegawai-table">Memuat...</div>
+    </div>
   </div>
 
 </div>
