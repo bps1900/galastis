@@ -126,6 +126,25 @@ function resetForm() {
   document.getElementById("f-kategori").selectedIndex = 0;
 }
 
+// ====== SYNC DARI PENGUMPULAN ======
+
+document.getElementById("btn-sync").addEventListener("click", async () => {
+  const msg = document.getElementById("sync-msg");
+  if (!confirm("Sync data dari sheet O1-O4 ke Galastis? Data yang sudah ada tidak akan duplikat.")) return;
+  msg.textContent = "Sedang sync...";
+  msg.className = "status-msg";
+  try {
+    const json = await postApi({ action: "syncKonten", secret: ADMIN_SECRET_INPUT });
+    if (json.error) throw new Error(json.error);
+    msg.textContent = `Selesai! ${json.added} karya baru ditambahkan.`;
+    msg.className = "status-msg ok";
+    loadKontenTable();
+  } catch (err) {
+    msg.textContent = err.message;
+    msg.className = "status-msg err";
+  }
+});
+
 // ====== PEGAWAI ======
 
 document.getElementById("btn-add-pegawai").addEventListener("click", async () => {
