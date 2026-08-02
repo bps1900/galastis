@@ -5,7 +5,7 @@ const KATEGORI = [
   { key: "Infografis", label: "Infografis", icon: iconChart() },
   { key: "Videografis", label: "Videografis", icon: iconPlay() },
   { key: "Flyer", label: "Flyer", icon: iconFlyer() },
-  { key: "Mini Paper", label: "Mini Paper", icon: iconDoc() }
+  { key: "Join Riset", label: "Join Riset", icon: iconDoc() }
 ];
 
 let STATE = {
@@ -278,8 +278,9 @@ function renderKatalog() {
 }
 
 function cardHtml(item) {
-  const thumb = item.Thumbnail
-    ? `<img src="${item.Thumbnail}" alt="${escapeHtml(item.Mahasiswa)}" loading="lazy">`
+  const thumbUrl = resolveThumbnail(item);
+  const thumb = thumbUrl
+    ? `<img src="${thumbUrl}" alt="${escapeHtml(item.Mahasiswa)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder-icon&quot;>${iconByKategori(item.Kategori).replace(/"/g, "&quot;")}</div>'">`
     : `<div class="placeholder-icon">${iconByKategori(item.Kategori)}</div>`;
   const likes = likeCountFor(item.ID);
   const comments = commentsFor(item.ID).length;
@@ -287,7 +288,7 @@ function cardHtml(item) {
     <div class="card" data-id="${item.ID}">
       <div class="card-thumb">${thumb}</div>
       <div class="card-body">
-        <p class="card-title">${escapeHtml(item.Mahasiswa)}</p>
+        <p class="card-title">${namesDisplay(item.Mahasiswa)}</p>
         <div class="card-stats">
           <span>${iconLike(false)} ${likes}</span>
           <span>${iconComment()} ${comments}</span>
@@ -300,6 +301,35 @@ function cardHtml(item) {
 function iconByKategori(kat) {
   const found = KATEGORI.find(k => k.key === kat);
   return found ? found.icon : iconDoc();
+}
+
+// Ambil ID file Google Drive dari berbagai format link
+function driveFileId(link) {
+  if (!link) return null;
+  const m = link.match(/\/d\/([^/]+)/) || link.match(/id=([^&]+)/);
+  return m ? m[1] : null;
+}
+
+// Kalau Thumbnail kosong, coba generate otomatis dari link Drive
+function resolveThumbnail(item) {
+  if (item.Thumbnail) return item.Thumbnail;
+  const id = driveFileId(item.EmbedLink);
+  if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w500`;
+  return null;
+}
+
+// Pisahkan nama jadi daftar (untuk karya kelompok, dipisah koma)
+function splitNames(str) {
+  return String(str || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function namesDisplay(str) {
+  const names = splitNames(str);
+  if (names.length <= 1) return escapeHtml(names[0] || "");
+  return names.map(escapeHtml).join(", ");
 }
 
 function escapeHtml(str) {
@@ -333,57 +363,61 @@ function openModal(id) {
   const comments = commentsFor(item.ID).sort((a, b) => new Date(a.Waktu) - new Date(b.Waktu));
 
   overlay.innerHTML = `
-    <div class="modal-box">
+    <div class="modal-box modal-box-split">
       <div class="modal-header">
         <div>
-          <h3>${escapeHtml(item.Mahasiswa)}</h3>
+          <h3>${namesDisplay(item.Mahasiswa)}</h3>
           <p>${escapeHtml(item.Kategori)} · Seri ${escapeHtml(item.Seri)}</p>
         </div>
         <button class="modal-close" id="modal-close">&times;</button>
       </div>
-      <div class="modal-scroll-body">
-        <div class="modal-frame-wrap">
-          <iframe src="${embedUrl}" allow="autoplay" allowfullscreen></iframe>
-        </div>
-        <div class="modal-footer">
-          <a class="btn btn-outline" href="${item.EmbedLink}" target="_blank" rel="noopener">Buka di Drive</a>
-        </div>
-        <div class="social-bar">
-          <button class="like-btn ${liked ? "liked" : ""}" id="btn-like">
-            ${iconLike(liked)} <span id="like-label">${liked ? "Disukai" : "Suka"}</span>
-          </button>
-          <span class="like-count" id="like-count">${likeCount} suka</span>
-        </div>
-        ${!user ? `<p class="login-required">Login sebagai pegawai untuk bisa like &amp; berkomentar. <a href="login.html">Login di sini</a>.</p>` : ""}
-        <div class="comment-section">
-          <h4>Komentar (${comments.length})</h4>
-          ${
-            user
-              ? `<div class="comment-form">
-                  <textarea id="comment-text" placeholder="Tulis komentar sebagai ${escapeHtml(user.nama)}..."></textarea>
-                  <button class="btn btn-primary" id="btn-comment">Kirim</button>
-                </div>`
-              : ""
-          }
-          <div class="comment-list" id="comment-list">
-            ${
-              comments.length === 0
-                ? `<p class="comment-empty">Belum ada komentar. Jadilah yang pertama!</p>`
-                : comments
-                    .map(
-                      c => `
-                <div class="comment-item">
-                  <div class="c-head">
-                    <span class="c-name">${escapeHtml(c.Nama)}</span>
-                    <span class="c-time">${timeAgo(c.Waktu)}</span>
-                  </div>
-                  <p class="c-text">${escapeHtml(c.Text)}</p>
-                </div>`
-                    )
-                    .join("")
-            }
+      <div class="modal-split-body">
+        <div class="modal-preview-col">
+          <div class="modal-frame-wrap">
+            <iframe src="${embedUrl}" allow="autoplay" allowfullscreen></iframe>
           </div>
-          <p class="status-msg" id="comment-msg"></p>
+          <div class="modal-footer">
+            <a class="btn btn-outline" href="${item.EmbedLink}" target="_blank" rel="noopener">Buka di Drive</a>
+          </div>
+        </div>
+        <div class="modal-side-col">
+          <div class="social-bar">
+            <button class="like-btn ${liked ? "liked" : ""}" id="btn-like">
+              ${iconLike(liked)} <span id="like-label">${liked ? "Disukai" : "Suka"}</span>
+            </button>
+            <span class="like-count" id="like-count">${likeCount} suka</span>
+          </div>
+          ${!user ? `<p class="login-required">Login sebagai pegawai untuk bisa like &amp; berkomentar. <a href="#" id="modal-login-link">Login di sini</a>.</p>` : ""}
+          <div class="comment-section">
+            <h4>Komentar (${comments.length})</h4>
+            ${
+              user
+                ? `<div class="comment-form">
+                    <textarea id="comment-text" placeholder="Tulis komentar sebagai ${escapeHtml(user.nama)}..."></textarea>
+                    <button class="btn btn-primary" id="btn-comment">Kirim</button>
+                  </div>`
+                : ""
+            }
+            <div class="comment-list" id="comment-list">
+              ${
+                comments.length === 0
+                  ? `<p class="comment-empty">Belum ada komentar. Jadilah yang pertama!</p>`
+                  : comments
+                      .map(
+                        c => `
+                  <div class="comment-item">
+                    <div class="c-head">
+                      <span class="c-name">${escapeHtml(c.Nama)}</span>
+                      <span class="c-time">${timeAgo(c.Waktu)}</span>
+                    </div>
+                    <p class="c-text">${escapeHtml(c.Text)}</p>
+                  </div>`
+                      )
+                      .join("")
+              }
+            </div>
+            <p class="status-msg" id="comment-msg"></p>
+          </div>
         </div>
       </div>
     </div>
@@ -392,6 +426,14 @@ function openModal(id) {
   overlay.classList.add("open");
   document.getElementById("modal-close").addEventListener("click", closeModal);
   overlay.addEventListener("click", e => { if (e.target === overlay) closeModal(); });
+  const loginLink = document.getElementById("modal-login-link");
+  if (loginLink) {
+    loginLink.addEventListener("click", e => {
+      e.preventDefault();
+      closeModal();
+      document.getElementById("login-link").click();
+    });
+  }
 
   document.getElementById("btn-like").addEventListener("click", () => toggleLike(item));
   const btnComment = document.getElementById("btn-comment");
@@ -557,7 +599,7 @@ function leaderboardSeriBlock(seri, items) {
           <div class="lb-row">
             <div class="lb-rank">${idx + 1}</div>
             <div class="lb-info">
-              <p class="t">${escapeHtml(item.Mahasiswa)}</p>
+              <p class="t">${namesDisplay(item.Mahasiswa)}</p>
             </div>
             <div class="lb-bar-wrap"><div class="lb-bar" style="width:${(item.jumlahLike / maxLike) * 100}%"></div></div>
             <div class="lb-count">${item.jumlahLike}</div>
