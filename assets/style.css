@@ -32,7 +32,7 @@ a { color: inherit; }
 /* ---------- Header ---------- */
 
 .app-header {
-  background: linear-gradient(120deg, var(--biru-tua) 0%, var(--biru) 62%, var(--hijau) 100%);
+  background: linear-gradient(120deg, var(--biru-tua) 0%, var(--biru) 40%, var(--oren) 62%, var(--hijau) 100%);
   color: var(--putih);
   padding: 14px 32px;
   display: flex;
