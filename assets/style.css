@@ -438,7 +438,7 @@ html:has(.layout), body:has(.layout) {
 .modal-close:hover { background: var(--oren-muda); color: var(--oren); }
 
 .modal-frame-wrap {
-  background: #0d1b2a;
+  background: var(--putih);
   flex-shrink: 0;
   min-height: 320px;
   display: flex;
@@ -453,11 +453,11 @@ html:has(.layout), body:has(.layout) {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: rgba(255,255,255,0.75);
+  color: var(--abu);
   font-size: 13px;
   z-index: 1;
 }
-.frame-loading .spinner { border-color: rgba(255,255,255,0.25); border-top-color: var(--putih); }
+.frame-loading .spinner { border-color: var(--garis); border-top-color: var(--biru); }
 .modal-frame-wrap iframe {
   width: 100%;
   height: 56vh;
