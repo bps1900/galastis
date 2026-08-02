@@ -218,22 +218,27 @@ function renderKatalog() {
   const items = (STATE.data.konten || []).filter(k => k.Kategori === kat);
 
   const seriList = [...new Set(items.map(i => i.Seri))].sort();
+  const itemsBySeri = {};
+  seriList.forEach(seri => { itemsBySeri[seri] = items.filter(i => i.Seri === seri); });
 
   main.innerHTML = `
     <div class="katalog-header">
-      <div class="section-title">
-        <h2>${kat}</h2>
-        ${
-          seriList.length > 0
-            ? `<div class="seri-tabs">
-                ${seriList
-                  .map(
-                    (seri, idx) => `<button class="seri-tab ${idx === 0 ? "active" : ""}" data-target="seri-block-${slugify(seri)}">Seri ${escapeHtml(seri)}</button>`
-                  )
-                  .join("")}
-              </div>`
-            : ""
-        }
+      <div class="katalog-header-top">
+        <div class="section-title">
+          <h2>${kat}</h2>
+          ${
+            seriList.length > 0
+              ? `<div class="seri-tabs">
+                  ${seriList
+                    .map(
+                      (seri, idx) => `<button class="seri-tab ${idx === 0 ? "active" : ""}" data-target="seri-block-${slugify(seri)}" data-seri="${escapeHtml(seri)}">Seri ${escapeHtml(seri)}</button>`
+                    )
+                    .join("")}
+                </div>`
+              : ""
+          }
+        </div>
+        ${seriList.length > 0 ? `<div class="top3-header" id="top3-header"></div>` : ""}
       </div>
       <p class="section-sub">Klik salah satu karya untuk melihat tampilan penuh, like, dan berkomentar.</p>
     </div>
@@ -245,16 +250,8 @@ function renderKatalog() {
               seri => `
         <div class="seri-block" id="seri-block-${slugify(seri)}">
           <div class="seri-title">Seri ${seri}</div>
-          <div class="seri-row">
-            <div class="seri-grid-wrap">
-              <div class="grid">
-                ${items
-                  .filter(i => i.Seri === seri)
-                  .map(cardHtml)
-                  .join("")}
-              </div>
-            </div>
-            ${top3PanelHtml(items.filter(i => i.Seri === seri))}
+          <div class="grid">
+            ${itemsBySeri[seri].map(cardHtml).join("")}
           </div>
         </div>`
             )
@@ -270,6 +267,13 @@ function renderKatalog() {
   if (headerEl) {
     main.style.setProperty("--katalog-header-h", headerEl.offsetHeight + "px");
   }
+
+  function updateTop3(seri) {
+    const box = document.getElementById("top3-header");
+    if (box && itemsBySeri[seri]) box.innerHTML = top3PanelInner(itemsBySeri[seri]);
+  }
+
+  if (seriList.length > 0) updateTop3(seriList[0]);
 
   const tabs = main.querySelectorAll(".seri-tab");
   tabs.forEach(tab => {
@@ -288,7 +292,13 @@ function renderKatalog() {
       blocks.forEach(block => {
         if (block.getBoundingClientRect().top - headerEl.offsetHeight <= 40) currentId = block.id;
       });
-      tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.target === currentId));
+      let currentSeri = null;
+      tabs.forEach(tab => {
+        const isActive = tab.dataset.target === currentId;
+        tab.classList.toggle("active", isActive);
+        if (isActive) currentSeri = tab.dataset.seri;
+      });
+      if (currentSeri) updateTop3(currentSeri);
     };
     main.onscroll = onScroll;
     onScroll();
@@ -297,8 +307,18 @@ function renderKatalog() {
   }
 }
 
-// Panel Top 3 like terbanyak untuk satu seri (emas/perak/perunggu)
-function top3PanelHtml(seriItems) {
+// Refresh isi panel Top 3 di header (dipanggil ulang setelah like berubah)
+function refreshTop3Header() {
+  const box = document.getElementById("top3-header");
+  const activeTab = document.querySelector(".seri-tab.active");
+  if (!box || !activeTab || !STATE.data) return;
+  const seri = activeTab.dataset.seri;
+  const items = (STATE.data.konten || []).filter(k => k.Kategori === STATE.activeKategori && k.Seri === seri);
+  box.innerHTML = top3PanelInner(items);
+}
+
+// Isi Top 3 like terbanyak untuk satu seri (emas/perak/perunggu)
+function top3PanelInner(seriItems) {
   const ranked = [...seriItems]
     .map(item => ({ item, likes: likeCountFor(item.ID) }))
     .sort((a, b) => b.likes - a.likes)
@@ -308,26 +328,24 @@ function top3PanelHtml(seriItems) {
   const medalClasses = ["gold", "silver", "bronze"];
 
   return `
-    <div class="top3-panel">
-      <div class="top3-title">Like Terbanyak</div>
-      ${
-        !hasLikes
-          ? `<p class="top3-empty">Belum ada like di seri ini.</p>`
-          : ranked
-              .filter(r => r.likes > 0)
-              .map(
-                (r, idx) => `
-            <div class="top3-row">
-              <span class="top3-badge ${medalClasses[idx]}">${iconLike(true)}</span>
-              <div class="top3-info">
-                <p class="top3-name">${namesDisplay(r.item.Mahasiswa)}</p>
-                <p class="top3-count">${r.likes} suka</p>
-              </div>
-            </div>`
-              )
-              .join("")
-      }
-    </div>
+    <div class="top3-title">Like Terbanyak</div>
+    ${
+      !hasLikes
+        ? `<p class="top3-empty">Belum ada like di seri ini.</p>`
+        : ranked
+            .filter(r => r.likes > 0)
+            .map(
+              (r, idx) => `
+          <div class="top3-row">
+            <span class="top3-badge ${medalClasses[idx]}">${iconLike(true)}</span>
+            <div class="top3-info">
+              <p class="top3-name">${namesDisplay(r.item.Mahasiswa)}</p>
+              <p class="top3-count">${r.likes} suka</p>
+            </div>
+          </div>`
+            )
+            .join("")
+    }
   `;
 }
 
@@ -663,6 +681,7 @@ async function toggleLike(item) {
     btn.classList.toggle("liked", nowLiked);
     btn.innerHTML = `${iconLike(nowLiked)} <span id="like-label">${nowLiked ? "Disukai" : "Suka"}</span>`;
     document.getElementById("like-count").textContent = `${likeCountFor(item.ID)} suka`;
+    refreshTop3Header();
   } catch (err) {
     alert(err.message);
   } finally {
