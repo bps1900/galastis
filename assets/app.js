@@ -54,44 +54,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function setupLoginModal() {
   const overlay = document.getElementById("login-overlay");
-  const link = document.getElementById("login-link");
 
   document.body.addEventListener("click", e => {
     const trigger = e.target.closest("#login-link");
     if (trigger) {
       e.preventDefault();
       document.getElementById("login-msg").textContent = "";
+      document.getElementById("login-input").value = "";
       overlay.classList.add("open");
+      setTimeout(() => document.getElementById("login-input").focus(), 50);
     }
   });
 
   document.getElementById("login-modal-close").addEventListener("click", () => overlay.classList.remove("open"));
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
 
-  document.querySelectorAll(".login-tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".login-tab").forEach(t => t.classList.remove("active"));
-      document.querySelectorAll(".login-panel").forEach(p => p.classList.remove("active"));
-      tab.classList.add("active");
-      document.getElementById(`panel-${tab.dataset.tab}`).classList.add("active");
-      document.getElementById("login-msg").textContent = "";
-    });
-  });
-
-  document.getElementById("btn-login-pegawai").addEventListener("click", async () => {
+  async function doUnifiedLogin() {
     const msg = document.getElementById("login-msg");
-    const nip = document.getElementById("p-nip").value.trim();
-    if (!nip) {
-      msg.textContent = "Masukkan NIP Anda.";
+    const val = document.getElementById("login-input").value.trim();
+    if (!val) {
+      msg.textContent = "Masukkan NIP atau password admin.";
       msg.className = "status-msg err";
       return;
     }
     msg.textContent = "Memeriksa...";
     msg.className = "status-msg";
+
+    // Coba admin dulu
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "loginPegawai", nip })
+        body: JSON.stringify({ action: "loginAdmin", secret: val })
+      });
+      const json = await res.json();
+      if (!json.error) {
+        sessionStorage.setItem("galastis_user", JSON.stringify({ role: "admin", secret: val }));
+        window.location.href = "admin.html";
+        return;
+      }
+    } catch (_) {}
+
+    // Kalau bukan admin, coba NIP pegawai
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "loginPegawai", nip: val })
       });
       const json = await res.json();
       if (json.error) throw new Error(json.error);
@@ -99,41 +106,18 @@ function setupLoginModal() {
         role: "pegawai", nama: json.nama, nip: json.nip
       }));
       overlay.classList.remove("open");
-      document.getElementById("p-nip").value = "";
+      document.getElementById("login-input").value = "";
       renderHeader();
       renderMain();
     } catch (err) {
-      msg.textContent = err.message || "NIP tidak ditemukan.";
+      msg.textContent = "NIP tidak ditemukan. Hubungi admin jika belum terdaftar.";
       msg.className = "status-msg err";
     }
-  });
+  }
 
-  document.getElementById("btn-login-admin").addEventListener("click", async () => {
-    const msg = document.getElementById("login-msg");
-    const pass = document.getElementById("a-password").value;
-    if (!pass) return;
-    msg.textContent = "Memeriksa...";
-    msg.className = "status-msg";
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "loginAdmin", secret: pass })
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      sessionStorage.setItem("galastis_user", JSON.stringify({ role: "admin", secret: pass }));
-      window.location.href = "admin.html";
-    } catch (err) {
-      msg.textContent = err.message || "Password admin salah.";
-      msg.className = "status-msg err";
-    }
-  });
-
-  document.getElementById("p-nip").addEventListener("keydown", e => {
-    if (e.key === "Enter") document.getElementById("btn-login-pegawai").click();
-  });
-  document.getElementById("a-password").addEventListener("keydown", e => {
-    if (e.key === "Enter") document.getElementById("btn-login-admin").click();
+  document.getElementById("btn-login-unified").addEventListener("click", doUnifiedLogin);
+  document.getElementById("login-input").addEventListener("keydown", e => {
+    if (e.key === "Enter") doUnifiedLogin();
   });
 }
 

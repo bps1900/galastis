@@ -605,28 +605,28 @@ body:has(.login-wrap) { height: 100vh; overflow: hidden; }
 body:has(.admin-wrap-wide) { height: 100vh; overflow: hidden; }
 .admin-wrap { max-width: 760px; margin: 0 auto; padding: 34px 20px 70px; }
 .admin-wrap-wide {
-  max-width: 1300px;
+  max-width: 1400px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 22px;
-  align-items: stretch;
-  height: calc(100vh - 80px);
-  padding-bottom: 20px;
+  height: calc(100vh - 72px);
+  padding: 20px 28px;
   overflow: hidden;
   box-sizing: border-box;
 }
 .admin-col {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 18px;
   min-width: 0;
-  overflow-y: auto;
-  padding-right: 6px;
+  min-height: 0;
+  overflow: hidden;
 }
-.admin-col .panel { margin-bottom: 0; flex-shrink: 0; }
+.admin-col .panel { margin-bottom: 0; }
 @media (max-width: 900px) {
   body:has(.admin-wrap-wide) { height: auto; overflow: visible; }
-  .admin-wrap-wide { grid-template-columns: 1fr; height: auto; overflow: visible; }
+  .admin-wrap-wide { grid-template-columns: 1fr; height: auto; overflow: visible; padding: 16px; }
   .admin-col { overflow: visible; }
 }
 .panel { background: #fff; border: 1px solid var(--garis); border-radius: var(--radius); padding: 22px; margin-bottom: 22px; }

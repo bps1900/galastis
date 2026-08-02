@@ -35,23 +35,12 @@
   <div class="login-box" style="max-width:400px; width:100%;">
     <button class="modal-close" id="login-modal-close" style="float:right;">&times;</button>
     <h2>Login</h2>
-    <p style="color:var(--abu); font-size:13.5px; margin-top:-6px;">Masuk sebagai pegawai untuk like &amp; komentar, atau sebagai admin untuk kelola konten.</p>
+    <p style="color:var(--abu); font-size:13.5px; margin-top:-6px;">Masukkan NIP Anda untuk masuk sebagai pegawai.</p>
 
-    <div class="login-tabs">
-      <button class="login-tab active" data-tab="pegawai">Pegawai</button>
-      <button class="login-tab" data-tab="admin">Admin</button>
-    </div>
-
-    <div class="login-panel active" id="panel-pegawai">
-      <label>NIP</label>
-      <input type="text" id="p-nip" placeholder="Masukkan NIP Anda">
-      <button class="btn btn-primary" style="width:100%; margin-top:12px;" id="btn-login-pegawai">Masuk sebagai Pegawai</button>
-    </div>
-
-    <div class="login-panel" id="panel-admin">
-      <label>Password Admin</label>
-      <input type="password" id="a-password" placeholder="Password admin">
-      <button class="btn btn-primary" style="width:100%; margin-top:12px;" id="btn-login-admin">Masuk sebagai Admin</button>
+    <div id="login-input-wrap">
+      <label style="text-align:left; display:block; font-size:12px; font-weight:600; color:var(--abu); margin-bottom:4px;">NIP / Password</label>
+      <input type="password" id="login-input" placeholder="Masukkan NIP atau password admin">
+      <button class="btn btn-primary" style="width:100%; margin-top:12px;" id="btn-login-unified">Masuk</button>
     </div>
 
     <p class="status-msg" id="login-msg"></p>

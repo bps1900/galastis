@@ -35,8 +35,9 @@
 
 <div id="admin-view" class="admin-wrap admin-wrap-wide" style="display:none;">
 
+  <!-- KOLOM KIRI: Kelola Karya -->
   <div class="admin-col">
-    <div class="panel">
+    <div class="panel" style="flex-shrink:0;">
       <h3>Tambah Karya Baru</h3>
       <div class="form-grid">
         <div>
@@ -49,26 +50,26 @@
           </select>
         </div>
         <div>
-          <label>Seri (bebas, boleh angka/nama)</label>
-          <input id="f-seri" placeholder="Contoh: 1, 2, atau &quot;Ekonomi&quot;">
+          <label>Seri</label>
+          <input id="f-seri" placeholder='Contoh: 1, 2, atau "Ekonomi"'>
         </div>
       </div>
       <div class="form-grid full">
         <div>
           <label>Nama Mahasiswa</label>
-          <input id="f-mahasiswa" placeholder="Nama mahasiswa (jika kelompok, pisahkan dengan koma, atau isi Kelompok 1)">
+          <input id="f-mahasiswa" placeholder="Jika kelompok, pisahkan dengan koma">
         </div>
       </div>
       <div class="form-grid full">
         <div>
-          <label>Link Google Drive (share link file/folder)</label>
+          <label>Link Google Drive</label>
           <input id="f-embed" placeholder="https://drive.google.com/file/d/....">
         </div>
       </div>
       <div class="form-grid full">
         <div>
-          <label>Link Thumbnail (opsional — kosongkan untuk ambil otomatis dari Drive)</label>
-          <input id="f-thumb" placeholder="https://... (opsional)">
+          <label>Link Thumbnail <span style="font-weight:400;color:var(--abu)">(opsional)</span></label>
+          <input id="f-thumb" placeholder="Kosongkan untuk ambil otomatis dari Drive">
         </div>
       </div>
       <div class="row-actions">
@@ -77,19 +78,21 @@
       </div>
     </div>
 
-    <div class="panel">
-      <h3>Daftar Karya Tersimpan</h3>
-      <div id="konten-table">Memuat...</div>
+    <div class="panel" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+      <h3 style="flex-shrink:0;">Daftar Karya Tersimpan</h3>
+      <div id="konten-table" style="flex:1; overflow-y:auto;">Memuat...</div>
     </div>
   </div>
 
+  <!-- KOLOM KANAN: Kelola Pegawai -->
   <div class="admin-col">
-    <div class="panel">
-      <h3>Tambah Pegawai (untuk login &amp; like/komentar)</h3>
+    <div class="panel" style="flex-shrink:0;">
+      <h3>Tambah Pegawai</h3>
+      <p style="color:var(--abu); font-size:13px; margin-top:-8px; margin-bottom:12px;">Pegawai yang terdaftar bisa login untuk like &amp; berkomentar.</p>
       <div class="form-grid full">
         <div>
           <label>Nama Pegawai</label>
-          <input id="f-pegawai" placeholder="Nama pegawai">
+          <input id="f-pegawai" placeholder="Nama lengkap pegawai">
         </div>
       </div>
       <div class="form-grid full">
@@ -104,9 +107,9 @@
       </div>
     </div>
 
-    <div class="panel">
-      <h3>Daftar Pegawai</h3>
-      <div id="pegawai-table">Memuat...</div>
+    <div class="panel" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+      <h3 style="flex-shrink:0;">Daftar Pegawai</h3>
+      <div id="pegawai-table" style="flex:1; overflow-y:auto;">Memuat...</div>
     </div>
   </div>
 
