@@ -165,26 +165,24 @@ function renderSidebar() {
       <span class="icon-wrap">${iconTrophy()}</span> Leaderboard
     </button>
     <div class="sidebar-art">
-      <svg viewBox="0 0 200 170" class="sidebar-art-svg" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="100" cy="150" rx="70" ry="10" fill="var(--biru-muda)"/>
-        <rect x="40" y="95" width="120" height="55" rx="6" fill="var(--putih)" stroke="var(--garis)" stroke-width="2"/>
-        <rect x="50" y="60" width="65" height="45" rx="4" fill="var(--biru-tua)"/>
-        <rect x="55" y="65" width="55" height="35" rx="2" fill="var(--biru)"/>
-        <rect x="60" y="70" class="sidebar-art-line" width="0" height="4" rx="2" fill="var(--hijau-muda)"/>
-        <rect x="60" y="78" class="sidebar-art-line" width="0" height="4" rx="2" fill="var(--hijau-muda)" style="animation-delay:0.4s"/>
-        <rect x="60" y="86" class="sidebar-art-line" width="0" height="4" rx="2" fill="var(--hijau-muda)" style="animation-delay:0.8s"/>
-        <circle cx="150" cy="55" r="16" fill="#F2C79E"/>
-        <path d="M136 50a14 14 0 0 1 28 0c0 2-2 3-4 2-6-3-16-3-22 0-2 1-2 0-2-2z" fill="var(--oren)"/>
-        <rect x="140" y="68" width="20" height="30" rx="8" fill="var(--oren)"/>
-        <g class="sidebar-art-arm">
-          <rect x="122" y="72" width="22" height="8" rx="4" fill="#F2C79E"/>
-          <circle cx="120" cy="76" r="4" fill="#F2C79E"/>
+      <svg viewBox="0 0 200 200" class="sidebar-art-svg" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="100" cy="188" rx="46" ry="7" fill="var(--biru-muda)"/>
+        <circle class="bulb-glow" cx="100" cy="92" r="62" fill="var(--oren)"/>
+        <g class="bulb-rays">
+          <line x1="100" y1="10" x2="100" y2="24" stroke="var(--oren)" stroke-width="4" stroke-linecap="round"/>
+          <line x1="34" y1="92" x2="20" y2="92" stroke="var(--oren)" stroke-width="4" stroke-linecap="round"/>
+          <line x1="166" y1="92" x2="180" y2="92" stroke="var(--oren)" stroke-width="4" stroke-linecap="round"/>
+          <line x1="50" y1="42" x2="40" y2="32" stroke="var(--oren)" stroke-width="4" stroke-linecap="round"/>
+          <line x1="150" y1="42" x2="160" y2="32" stroke="var(--oren)" stroke-width="4" stroke-linecap="round"/>
         </g>
-        <circle class="sidebar-art-spark" cx="118" cy="70" r="2" fill="var(--hijau)"/>
-        <circle class="sidebar-art-spark" cx="112" cy="66" r="1.6" fill="var(--biru)" style="animation-delay:0.3s"/>
-        <circle class="sidebar-art-spark" cx="115" cy="76" r="1.4" fill="var(--oren)" style="animation-delay:0.6s"/>
+        <path class="bulb-glass" d="M100 24c-30 0-50 22-50 50 0 20 11 32 20 42 6 7 9 12 9 20h42c0-8 3-13 9-20 9-10 20-22 20-42 0-28-20-50-50-50z" fill="var(--putih)" stroke="var(--oren)" stroke-width="3.5"/>
+        <rect x="80" y="136" width="40" height="9" rx="2" fill="var(--abu)"/>
+        <rect x="83" y="147" width="34" height="7" rx="2" fill="var(--abu)"/>
+        <rect x="87" y="156" width="26" height="9" rx="4" fill="var(--tinta)"/>
+        <text x="100" y="80" text-anchor="middle" class="bulb-text">Magang Seru,</text>
+        <text x="100" y="98" text-anchor="middle" class="bulb-text">Ilmu Baru,</text>
+        <text x="100" y="116" text-anchor="middle" class="bulb-text">Karya Maju</text>
       </svg>
-      <p class="sidebar-art-tagline">Magang Seru, Ilmu Baru, Karya Maju</p>
     </div>
   `;
 
@@ -282,6 +280,11 @@ function renderKatalog() {
   main.querySelectorAll(".card").forEach(card => {
     card.addEventListener("click", () => openModal(card.dataset.id));
   });
+
+  const headerEl = main.querySelector(".katalog-header");
+  if (headerEl) {
+    main.style.setProperty("--katalog-header-h", headerEl.offsetHeight + "px");
+  }
 }
 
 function cardHtml(item) {
