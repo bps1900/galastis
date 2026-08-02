@@ -468,7 +468,11 @@ html:has(.layout), body:has(.layout) {
   height: 100%;
   object-fit: contain;
   display: block;
+  cursor: zoom-in;
+  will-change: transform;
+  touch-action: none;
 }
+.modal-frame-wrap { overflow: hidden; }
 
 .modal-scroll-body {
   overflow-y: auto;

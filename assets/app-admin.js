@@ -153,7 +153,7 @@ document.getElementById("btn-sync").addEventListener("click", async () => {
   try {
     const json = await postApi({ action: "syncKonten", secret: ADMIN_SECRET_INPUT });
     if (json.error) throw new Error(json.error);
-    msg.textContent = `Selesai! ${json.added} karya baru ditambahkan.`;
+    msg.textContent = `Selesai. ${json.added} karya baru ditambahkan.`;
     msg.className = "status-msg ok";
     loadKontenTable();
   } catch (err) {

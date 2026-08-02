@@ -351,10 +351,10 @@ function resolveThumbnail(item) {
   return null;
 }
 
-// Versi resolusi tinggi untuk ditampilkan penuh di modal (bukan thumbnail kecil)
+// Versi resolusi tinggi untuk ditampilkan penuh di modal (bukan thumbnail kecil terkompres)
 function highResImageUrl(item) {
   const id = driveFileId(item.EmbedLink);
-  if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w2000`;
+  if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
   return item.Thumbnail || null;
 }
 
@@ -449,7 +449,7 @@ function openModal(id) {
             <div class="comment-list" id="comment-list">
               ${
                 comments.length === 0
-                  ? `<p class="comment-empty">Belum ada komentar. Jadilah yang pertama!</p>`
+                  ? `<p class="comment-empty">Belum ada komentar.</p>`
                   : comments
                       .map(
                         c => `
@@ -474,6 +474,8 @@ function openModal(id) {
   overlay.classList.add("open");
   document.getElementById("modal-close").addEventListener("click", closeModal);
   overlay.addEventListener("click", e => { if (e.target === overlay) closeModal(); });
+  const previewImg = overlay.querySelector(".modal-preview-img");
+  if (previewImg) setupImageZoom(previewImg);
   const loginLink = document.getElementById("modal-login-link");
   if (loginLink) {
     loginLink.addEventListener("click", e => {
@@ -491,6 +493,62 @@ function openModal(id) {
 function closeModal() {
   document.getElementById("modal-overlay").classList.remove("open");
   document.getElementById("modal-overlay").innerHTML = "";
+}
+
+// Zoom pakai scroll mouse (bebas sesuka hati) + geser (drag) saat sudah di-zoom
+function setupImageZoom(img) {
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 5;
+  let scale = 1, originX = 50, originY = 50;
+  let tx = 0, ty = 0;
+  let panning = false, startX = 0, startY = 0, startTx = 0, startTy = 0;
+
+  function apply() {
+    img.style.transformOrigin = `${originX}% ${originY}%`;
+    img.style.transform = `scale(${scale}) translate(${tx}px, ${ty}px)`;
+    img.style.cursor = scale > 1 ? "grab" : "zoom-in";
+  }
+
+  img.addEventListener("wheel", e => {
+    e.preventDefault();
+    const rect = img.getBoundingClientRect();
+    originX = ((e.clientX - rect.left) / rect.width) * 100;
+    originY = ((e.clientY - rect.top) / rect.height) * 100;
+    const delta = e.deltaY > 0 ? -0.2 : 0.2;
+    const next = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale + delta));
+    if (next === scale) return;
+    scale = next;
+    if (scale === MIN_SCALE) { tx = 0; ty = 0; }
+    apply();
+  }, { passive: false });
+
+  img.addEventListener("dblclick", () => {
+    scale = scale > MIN_SCALE ? MIN_SCALE : 2.5;
+    tx = 0; ty = 0;
+    apply();
+  });
+
+  img.addEventListener("mousedown", e => {
+    if (scale <= MIN_SCALE) return;
+    e.preventDefault();
+    panning = true;
+    startX = e.clientX; startY = e.clientY;
+    startTx = tx; startTy = ty;
+    img.style.cursor = "grabbing";
+  });
+  window.addEventListener("mousemove", e => {
+    if (!panning) return;
+    tx = startTx + (e.clientX - startX) / scale;
+    ty = startTy + (e.clientY - startY) / scale;
+    apply();
+  });
+  window.addEventListener("mouseup", () => {
+    if (!panning) return;
+    panning = false;
+    apply();
+  });
+
+  apply();
 }
 
 function toEmbeddableUrl(link) {
