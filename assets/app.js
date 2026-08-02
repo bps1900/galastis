@@ -1,5 +1,5 @@
 // ====== KONFIGURASI ======
-const API_URL = "https://script.google.com/macros/s/AKfycbw4-Fi9SaSTB1Ain86-9xEGVjqLmLtnjXGv1jf-BZI79yKDTE39F5PdWPCfrFYCe6ZABQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxxwqnB9rvuoGjVNcMeH-IHLW7cWjRd0uGAVVnI_FQY3wOya4k5XiwUcu6Rgmcn6lfbXw/exec";
 
 const KATEGORI = [
   { key: "Infografis", label: "Infografis", icon: iconChart() },
@@ -49,7 +49,93 @@ document.addEventListener("DOMContentLoaded", () => {
   renderHeader();
   renderSidebar();
   loadData();
+  setupLoginModal();
 });
+
+function setupLoginModal() {
+  const overlay = document.getElementById("login-overlay");
+  const link = document.getElementById("login-link");
+
+  document.body.addEventListener("click", e => {
+    const trigger = e.target.closest("#login-link");
+    if (trigger) {
+      e.preventDefault();
+      document.getElementById("login-msg").textContent = "";
+      overlay.classList.add("open");
+    }
+  });
+
+  document.getElementById("login-modal-close").addEventListener("click", () => overlay.classList.remove("open"));
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
+
+  document.querySelectorAll(".login-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".login-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".login-panel").forEach(p => p.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById(`panel-${tab.dataset.tab}`).classList.add("active");
+      document.getElementById("login-msg").textContent = "";
+    });
+  });
+
+  document.getElementById("btn-login-pegawai").addEventListener("click", async () => {
+    const msg = document.getElementById("login-msg");
+    const nip = document.getElementById("p-nip").value.trim();
+    if (!nip) {
+      msg.textContent = "Masukkan NIP Anda.";
+      msg.className = "status-msg err";
+      return;
+    }
+    msg.textContent = "Memeriksa...";
+    msg.className = "status-msg";
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "loginPegawai", nip })
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      sessionStorage.setItem("galastis_user", JSON.stringify({
+        role: "pegawai", nama: json.nama, nip: json.nip
+      }));
+      overlay.classList.remove("open");
+      document.getElementById("p-nip").value = "";
+      renderHeader();
+      renderMain();
+    } catch (err) {
+      msg.textContent = err.message || "NIP tidak ditemukan.";
+      msg.className = "status-msg err";
+    }
+  });
+
+  document.getElementById("btn-login-admin").addEventListener("click", async () => {
+    const msg = document.getElementById("login-msg");
+    const pass = document.getElementById("a-password").value;
+    if (!pass) return;
+    msg.textContent = "Memeriksa...";
+    msg.className = "status-msg";
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "loginAdmin", secret: pass })
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      sessionStorage.setItem("galastis_user", JSON.stringify({ role: "admin", secret: pass }));
+      window.location.href = "admin.html";
+    } catch (err) {
+      msg.textContent = err.message || "Password admin salah.";
+      msg.className = "status-msg err";
+    }
+  });
+
+  document.getElementById("p-nip").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("btn-login-pegawai").click();
+  });
+  document.getElementById("a-password").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("btn-login-admin").click();
+  });
+}
 
 function renderHeader() {
   const wrap = document.getElementById("header-actions");
@@ -76,7 +162,7 @@ function renderHeader() {
       renderHeader();
     });
   } else {
-    wrap.innerHTML = `<a href="login.html" id="login-link">Login</a>`;
+    wrap.innerHTML = `<a href="#" id="login-link">Login</a>`;
   }
 }
 
