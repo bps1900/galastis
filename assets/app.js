@@ -316,35 +316,35 @@ function refreshTop3Header() {
   box.innerHTML = top3PanelInner(items);
 }
 
-// Isi Top 3 like terbanyak untuk satu seri (emas/perak/perunggu)
+// Isi Top 3 like terbanyak untuk satu seri (emas/perak/perunggu) — selalu 3 slot tetap, tidak pernah berubah tinggi
 function top3PanelInner(seriItems) {
   const ranked = [...seriItems]
     .map(item => ({ item, likes: likeCountFor(item.ID) }))
+    .filter(r => r.likes > 0)
     .sort((a, b) => b.likes - a.likes)
     .slice(0, 3);
 
-  const hasLikes = ranked.some(r => r.likes > 0);
   const medalClasses = ["gold", "silver", "bronze"];
+  const slots = [0, 1, 2].map(i => {
+    const r = ranked[i];
+    if (!r) {
+      return `
+        <div class="top3-slot">
+          <span class="top3-badge empty">${iconLike(false)}</span>
+          <p class="top3-name">-</p>
+        </div>`;
+    }
+    return `
+      <div class="top3-slot">
+        <span class="top3-badge ${medalClasses[i]}">${iconLike(true)}</span>
+        <p class="top3-name" title="${escapeHtml(namesDisplay(r.item.Mahasiswa))}">${namesDisplay(r.item.Mahasiswa)}</p>
+        <p class="top3-count">${r.likes} suka</p>
+      </div>`;
+  });
 
   return `
     <div class="top3-title">Like Terbanyak</div>
-    ${
-      !hasLikes
-        ? `<p class="top3-empty">Belum ada like di seri ini.</p>`
-        : ranked
-            .filter(r => r.likes > 0)
-            .map(
-              (r, idx) => `
-          <div class="top3-row">
-            <span class="top3-badge ${medalClasses[idx]}">${iconLike(true)}</span>
-            <div class="top3-info">
-              <p class="top3-name">${namesDisplay(r.item.Mahasiswa)}</p>
-              <p class="top3-count">${r.likes} suka</p>
-            </div>
-          </div>`
-            )
-            .join("")
-    }
+    <div class="top3-slots">${slots.join("")}</div>
   `;
 }
 

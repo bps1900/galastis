@@ -297,34 +297,34 @@ html:has(.layout), body:has(.layout) {
 }
 
 .top3-header {
-  width: 230px;
+  width: 300px;
   flex-shrink: 0;
   background: var(--putih);
   border: 1px solid var(--garis);
   border-radius: 12px;
-  padding: 12px 14px 14px;
+  padding: 10px 12px;
 }
 .top3-title {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--abu);
-  margin: 0 0 10px;
+  margin: 0 0 8px;
 }
-.top3-empty {
-  font-size: 12.5px;
-  color: var(--abu);
-  margin: 0;
-}
-.top3-row {
+.top3-slots {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--garis);
+  gap: 8px;
 }
-.top3-row:last-child { border-bottom: none; }
+.top3-slot {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+}
 .top3-badge {
   width: 26px;
   height: 26px;
@@ -339,16 +339,17 @@ html:has(.layout), body:has(.layout) {
 .top3-badge.gold { background: linear-gradient(135deg, #FFE08A, #D4AF37); color: #6B4E00; }
 .top3-badge.silver { background: linear-gradient(135deg, #F0F0F0, #B0B4B8); color: #4A4E52; }
 .top3-badge.bronze { background: linear-gradient(135deg, #E6B37E, #B0723C); color: #4A2E10; }
-.top3-info { min-width: 0; flex: 1; }
+.top3-badge.empty { background: var(--kertas); color: var(--garis); box-shadow: none; border: 1px dashed var(--garis); }
 .top3-name {
-  font-size: 12.5px;
+  font-size: 11px;
   font-weight: 600;
-  margin: 0 0 1px;
+  margin: 0;
+  width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.top3-count { font-size: 11px; color: var(--abu); margin: 0; }
+.top3-count { font-size: 10px; color: var(--abu); margin: 0; }
 
 @media (max-width: 900px) {
   .katalog-header-top { flex-direction: column; }
