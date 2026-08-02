@@ -288,6 +288,72 @@ html:has(.layout), body:has(.layout) {
   gap: 18px;
 }
 
+.seri-row {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.seri-grid-wrap { flex: 1; min-width: 0; }
+
+.top3-panel {
+  width: 250px;
+  flex-shrink: 0;
+  background: var(--putih);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius);
+  padding: 16px 16px 18px;
+}
+.top3-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--abu);
+  margin: 0 0 12px;
+}
+.top3-empty {
+  font-size: 13px;
+  color: var(--abu);
+  margin: 0;
+}
+.top3-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--garis);
+}
+.top3-row:last-child { border-bottom: none; }
+.top3-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.top3-badge svg { width: 15px; height: 15px; }
+.top3-badge.gold { background: linear-gradient(135deg, #FFE08A, #D4AF37); color: #6B4E00; }
+.top3-badge.silver { background: linear-gradient(135deg, #F0F0F0, #B0B4B8); color: #4A4E52; }
+.top3-badge.bronze { background: linear-gradient(135deg, #E6B37E, #B0723C); color: #4A2E10; }
+.top3-info { min-width: 0; flex: 1; }
+.top3-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.top3-count { font-size: 11.5px; color: var(--abu); margin: 0; }
+
+@media (max-width: 900px) {
+  .seri-row { flex-direction: column; }
+  .top3-panel { width: 100%; }
+}
+
 .card {
   background: var(--putih);
   border: 1px solid var(--garis);

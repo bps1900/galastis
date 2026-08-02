@@ -10,8 +10,7 @@ const KATEGORI = [
 
 let STATE = {
   data: null,
-  activeKategori: KATEGORI[0].key,
-  view: "katalog" // "katalog" | "leaderboard"
+  activeKategori: KATEGORI[0].key
 };
 
 function currentUser() {
@@ -156,28 +155,18 @@ function renderSidebar() {
     <div class="sidebar-label">Kategori Karya</div>
     ${KATEGORI.map(
       k => `
-      <button class="cat-btn ${STATE.view === "katalog" && STATE.activeKategori === k.key ? "active" : ""}" data-cat="${k.key}">
+      <button class="cat-btn ${STATE.activeKategori === k.key ? "active" : ""}" data-cat="${k.key}">
         <span class="icon-wrap">${k.icon}</span> ${k.label}
       </button>`
     ).join("")}
-    <div class="sidebar-divider"></div>
-    <button class="leaderboard-link" id="btn-leaderboard">
-      <span class="icon-wrap">${iconTrophy()}</span> Leaderboard
-    </button>
   `;
 
   sidebar.querySelectorAll(".cat-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      STATE.view = "katalog";
       STATE.activeKategori = btn.dataset.cat;
       renderSidebar();
       renderMain();
     });
-  });
-  document.getElementById("btn-leaderboard").addEventListener("click", () => {
-    STATE.view = "leaderboard";
-    renderSidebar();
-    renderMain();
   });
 }
 
@@ -204,9 +193,9 @@ function renderLoading() {
 }
 
 function renderMain() {
-  if (STATE.view === "leaderboard") return renderLeaderboard();
   renderKatalog();
 }
+
 
 // ====== Helpers untuk hitung like & comment per karya ======
 function likeCountFor(karyaId) {
@@ -256,11 +245,16 @@ function renderKatalog() {
               seri => `
         <div class="seri-block" id="seri-block-${slugify(seri)}">
           <div class="seri-title">Seri ${seri}</div>
-          <div class="grid">
-            ${items
-              .filter(i => i.Seri === seri)
-              .map(cardHtml)
-              .join("")}
+          <div class="seri-row">
+            <div class="seri-grid-wrap">
+              <div class="grid">
+                ${items
+                  .filter(i => i.Seri === seri)
+                  .map(cardHtml)
+                  .join("")}
+              </div>
+            </div>
+            ${top3PanelHtml(items.filter(i => i.Seri === seri))}
           </div>
         </div>`
             )
@@ -301,6 +295,40 @@ function renderKatalog() {
   } else {
     main.onscroll = null;
   }
+}
+
+// Panel Top 3 like terbanyak untuk satu seri (emas/perak/perunggu)
+function top3PanelHtml(seriItems) {
+  const ranked = [...seriItems]
+    .map(item => ({ item, likes: likeCountFor(item.ID) }))
+    .sort((a, b) => b.likes - a.likes)
+    .slice(0, 3);
+
+  const hasLikes = ranked.some(r => r.likes > 0);
+  const medalClasses = ["gold", "silver", "bronze"];
+
+  return `
+    <div class="top3-panel">
+      <div class="top3-title">Like Terbanyak</div>
+      ${
+        !hasLikes
+          ? `<p class="top3-empty">Belum ada like di seri ini.</p>`
+          : ranked
+              .filter(r => r.likes > 0)
+              .map(
+                (r, idx) => `
+            <div class="top3-row">
+              <span class="top3-badge ${medalClasses[idx]}">${iconLike(true)}</span>
+              <div class="top3-info">
+                <p class="top3-name">${namesDisplay(r.item.Mahasiswa)}</p>
+                <p class="top3-count">${r.likes} suka</p>
+              </div>
+            </div>`
+              )
+              .join("")
+      }
+    </div>
+  `;
 }
 
 function slugify(str) {
@@ -695,62 +723,3 @@ async function submitComment(item) {
   }
 }
 
-// ====== LEADERBOARD (berdasarkan jumlah like) ======
-
-function renderLeaderboard() {
-  const main = document.getElementById("main");
-  const konten = STATE.data.konten || [];
-  const all = konten
-    .map(item => ({ ...item, jumlahLike: likeCountFor(item.ID) }))
-    .filter(i => i.jumlahLike > 0);
-
-  main.innerHTML = `
-    <div class="section-title"><h2>Leaderboard</h2></div>
-    <p class="section-sub">Peringkat karya berdasarkan jumlah like dari pegawai, dikelompokkan per kategori dan seri.</p>
-    ${
-      all.length === 0
-        ? `<div class="empty-state">Belum ada like yang masuk.</div>`
-        : KATEGORI.map(kat => leaderboardKategoriBlock(kat, all)).join("")
-    }
-  `;
-}
-
-function leaderboardKategoriBlock(kat, all) {
-  const items = all.filter(i => i.Kategori === kat.key);
-  if (items.length === 0) return "";
-
-  const seriList = [...new Set(items.map(i => i.Seri))].sort();
-
-  return `
-    <div class="section-title" style="margin-top:28px;">
-      <h2 style="font-size:19px;">${kat.label}</h2>
-    </div>
-    ${seriList.map(seri => leaderboardSeriBlock(seri, items.filter(i => i.Seri === seri))).join("")}
-  `;
-}
-
-function leaderboardSeriBlock(seri, items) {
-  const sorted = [...items].sort((a, b) => b.jumlahLike - a.jumlahLike);
-  const maxLike = Math.max(1, ...sorted.map(i => i.jumlahLike));
-
-  return `
-    <div class="seri-block">
-      <div class="seri-title">Seri ${escapeHtml(seri)}</div>
-      <div class="leaderboard-list">
-        ${sorted
-          .map(
-            (item, idx) => `
-          <div class="lb-row">
-            <div class="lb-rank">${idx + 1}</div>
-            <div class="lb-info">
-              <p class="t">${namesDisplay(item.Mahasiswa)}</p>
-            </div>
-            <div class="lb-bar-wrap"><div class="lb-bar" style="width:${(item.jumlahLike / maxLike) * 100}%"></div></div>
-            <div class="lb-count">${item.jumlahLike}</div>
-          </div>`
-          )
-          .join("")}
-      </div>
-    </div>
-  `;
-}
