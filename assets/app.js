@@ -249,7 +249,6 @@ function renderKatalog() {
             .map(
               seri => `
         <div class="seri-block" id="seri-block-${slugify(seri)}">
-          <div class="seri-title">Seri ${seri}</div>
           <div class="grid">
             ${itemsBySeri[seri].map(cardHtml).join("")}
           </div>
