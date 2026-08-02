@@ -165,12 +165,26 @@ function renderSidebar() {
       <span class="icon-wrap">${iconTrophy()}</span> Leaderboard
     </button>
     <div class="sidebar-art">
-      <div class="sidebar-art-title">
-        ${"GALASTIS".split("").map((ch, i) => `<span style="animation-delay:${i * 0.12}s">${ch}</span>`).join("")}
-      </div>
-      <div class="sidebar-art-tag">
-        ${["Magang", "Seru,", "Ilmu", "Baru,", "Karya", "Maju"].map((w, i) => `<span style="animation-delay:${1 + i * 0.35}s">${w}</span>`).join(" ")}
-      </div>
+      <svg viewBox="0 0 200 170" class="sidebar-art-svg" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="100" cy="150" rx="70" ry="10" fill="var(--biru-muda)"/>
+        <rect x="40" y="95" width="120" height="55" rx="6" fill="var(--putih)" stroke="var(--garis)" stroke-width="2"/>
+        <rect x="50" y="60" width="65" height="45" rx="4" fill="var(--biru-tua)"/>
+        <rect x="55" y="65" width="55" height="35" rx="2" fill="var(--biru)"/>
+        <rect x="60" y="70" class="sidebar-art-line" width="0" height="4" rx="2" fill="var(--hijau-muda)"/>
+        <rect x="60" y="78" class="sidebar-art-line" width="0" height="4" rx="2" fill="var(--hijau-muda)" style="animation-delay:0.4s"/>
+        <rect x="60" y="86" class="sidebar-art-line" width="0" height="4" rx="2" fill="var(--hijau-muda)" style="animation-delay:0.8s"/>
+        <circle cx="150" cy="55" r="16" fill="#F2C79E"/>
+        <path d="M136 50a14 14 0 0 1 28 0c0 2-2 3-4 2-6-3-16-3-22 0-2 1-2 0-2-2z" fill="var(--oren)"/>
+        <rect x="140" y="68" width="20" height="30" rx="8" fill="var(--oren)"/>
+        <g class="sidebar-art-arm">
+          <rect x="122" y="72" width="22" height="8" rx="4" fill="#F2C79E"/>
+          <circle cx="120" cy="76" r="4" fill="#F2C79E"/>
+        </g>
+        <circle class="sidebar-art-spark" cx="118" cy="70" r="2" fill="var(--hijau)"/>
+        <circle class="sidebar-art-spark" cx="112" cy="66" r="1.6" fill="var(--biru)" style="animation-delay:0.3s"/>
+        <circle class="sidebar-art-spark" cx="115" cy="76" r="1.4" fill="var(--oren)" style="animation-delay:0.6s"/>
+      </svg>
+      <p class="sidebar-art-tagline">Magang Seru, Ilmu Baru, Karya Maju</p>
     </div>
   `;
 
@@ -239,11 +253,12 @@ function renderKatalog() {
   const seriList = [...new Set(items.map(i => i.Seri))].sort();
 
   main.innerHTML = `
-    <div class="section-title">
-      <h2>${kat}</h2>
-      <span class="count">${items.length} karya</span>
+    <div class="katalog-header">
+      <div class="section-title">
+        <h2>${kat}</h2>
+      </div>
+      <p class="section-sub">Klik salah satu karya untuk melihat tampilan penuh, like, dan berkomentar.</p>
     </div>
-    <p class="section-sub">Klik salah satu karya untuk melihat tampilan penuh, like, dan berkomentar.</p>
     ${
       items.length === 0
         ? `<div class="empty-state">Belum ada karya ${kat} yang ditambahkan. Admin bisa menambahkannya melalui halaman admin.</div>`
