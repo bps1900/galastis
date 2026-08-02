@@ -343,7 +343,6 @@ function top3PanelInner(seriItems) {
   });
 
   return `
-    <div class="top3-title">Like Terbanyak</div>
     <div class="top3-slots">${slots.join("")}</div>
   `;
 }
