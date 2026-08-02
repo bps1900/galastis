@@ -164,26 +164,6 @@ function renderSidebar() {
     <button class="leaderboard-link" id="btn-leaderboard">
       <span class="icon-wrap">${iconTrophy()}</span> Leaderboard
     </button>
-    <div class="sidebar-art">
-      <svg viewBox="0 0 200 200" class="sidebar-art-svg" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="100" cy="188" rx="46" ry="7" fill="var(--biru-muda)"/>
-        <circle class="bulb-glow" cx="100" cy="92" r="62" fill="var(--oren)"/>
-        <g class="bulb-rays">
-          <line x1="100" y1="10" x2="100" y2="24" stroke="var(--oren)" stroke-width="4" stroke-linecap="round"/>
-          <line x1="34" y1="92" x2="20" y2="92" stroke="var(--oren)" stroke-width="4" stroke-linecap="round"/>
-          <line x1="166" y1="92" x2="180" y2="92" stroke="var(--oren)" stroke-width="4" stroke-linecap="round"/>
-          <line x1="50" y1="42" x2="40" y2="32" stroke="var(--oren)" stroke-width="4" stroke-linecap="round"/>
-          <line x1="150" y1="42" x2="160" y2="32" stroke="var(--oren)" stroke-width="4" stroke-linecap="round"/>
-        </g>
-        <path class="bulb-glass" d="M100 24c-30 0-50 22-50 50 0 20 11 32 20 42 6 7 9 12 9 20h42c0-8 3-13 9-20 9-10 20-22 20-42 0-28-20-50-50-50z" fill="var(--putih)" stroke="var(--oren)" stroke-width="3.5"/>
-        <rect x="80" y="136" width="40" height="9" rx="2" fill="var(--abu)"/>
-        <rect x="83" y="147" width="34" height="7" rx="2" fill="var(--abu)"/>
-        <rect x="87" y="156" width="26" height="9" rx="4" fill="var(--tinta)"/>
-        <text x="100" y="80" text-anchor="middle" class="bulb-text">Magang Seru,</text>
-        <text x="100" y="98" text-anchor="middle" class="bulb-text">Ilmu Baru,</text>
-        <text x="100" y="116" text-anchor="middle" class="bulb-text">Karya Maju</text>
-      </svg>
-    </div>
   `;
 
   sidebar.querySelectorAll(".cat-btn").forEach(btn => {
@@ -254,6 +234,17 @@ function renderKatalog() {
     <div class="katalog-header">
       <div class="section-title">
         <h2>${kat}</h2>
+        ${
+          seriList.length > 0
+            ? `<div class="seri-tabs">
+                ${seriList
+                  .map(
+                    (seri, idx) => `<button class="seri-tab ${idx === 0 ? "active" : ""}" data-target="seri-block-${slugify(seri)}">Seri ${escapeHtml(seri)}</button>`
+                  )
+                  .join("")}
+              </div>`
+            : ""
+        }
       </div>
       <p class="section-sub">Klik salah satu karya untuk melihat tampilan penuh, like, dan berkomentar.</p>
     </div>
@@ -263,7 +254,7 @@ function renderKatalog() {
         : seriList
             .map(
               seri => `
-        <div class="seri-block">
+        <div class="seri-block" id="seri-block-${slugify(seri)}">
           <div class="seri-title">Seri ${seri}</div>
           <div class="grid">
             ${items
@@ -285,6 +276,38 @@ function renderKatalog() {
   if (headerEl) {
     main.style.setProperty("--katalog-header-h", headerEl.offsetHeight + "px");
   }
+
+  const tabs = main.querySelectorAll(".seri-tab");
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      const target = document.getElementById(tab.dataset.target);
+      if (!target || !headerEl) return;
+      const y = target.getBoundingClientRect().top - main.getBoundingClientRect().top + main.scrollTop - headerEl.offsetHeight - 10;
+      main.scrollTo({ top: y, behavior: "smooth" });
+    });
+  });
+
+  if (tabs.length > 0 && headerEl) {
+    const blocks = main.querySelectorAll(".seri-block");
+    const onScroll = () => {
+      let currentId = blocks[0] ? blocks[0].id : null;
+      blocks.forEach(block => {
+        if (block.getBoundingClientRect().top - headerEl.offsetHeight <= 40) currentId = block.id;
+      });
+      tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.target === currentId));
+    };
+    main.onscroll = onScroll;
+    onScroll();
+  } else {
+    main.onscroll = null;
+  }
+}
+
+function slugify(str) {
+  return String(str || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "") || "x";
 }
 
 function cardHtml(item) {
