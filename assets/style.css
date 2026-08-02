@@ -444,7 +444,20 @@ html:has(.layout), body:has(.layout) {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
+.frame-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255,255,255,0.75);
+  font-size: 13px;
+  z-index: 1;
+}
+.frame-loading .spinner { border-color: rgba(255,255,255,0.25); border-top-color: var(--putih); }
 .modal-frame-wrap iframe {
   width: 100%;
   height: 56vh;

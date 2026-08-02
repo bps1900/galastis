@@ -347,7 +347,7 @@ function driveFileId(link) {
 function resolveThumbnail(item) {
   if (item.Thumbnail) return item.Thumbnail;
   const id = driveFileId(item.EmbedLink);
-  if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w500`;
+  if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w1600`;
   return null;
 }
 
@@ -407,7 +407,8 @@ function openModal(id) {
       <div class="modal-split-body">
         <div class="modal-preview-col">
           <div class="modal-frame-wrap">
-            <iframe src="${embedUrl}" allow="autoplay" allowfullscreen></iframe>
+            <div class="frame-loading" id="frame-loading"><span class="spinner"></span> Memuat pratinjau...</div>
+            <iframe src="${embedUrl}" allow="autoplay" allowfullscreen onload="document.getElementById('frame-loading')?.remove()"></iframe>
           </div>
           <div class="modal-footer">
             <a class="btn btn-outline" href="${item.EmbedLink}" target="_blank" rel="noopener">Buka di Drive</a>
