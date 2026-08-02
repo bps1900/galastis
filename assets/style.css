@@ -228,6 +228,7 @@ html:has(.layout), body:has(.layout) {
   gap: 12px;
   margin-bottom: 4px;
   flex-wrap: wrap;
+  padding-right: 320px;
 }
 .section-title h2 {
   font-family: var(--font-display);
@@ -289,6 +290,7 @@ html:has(.layout), body:has(.layout) {
 }
 
 .katalog-header-top {
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -297,6 +299,9 @@ html:has(.layout), body:has(.layout) {
 }
 
 .top3-header {
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 300px;
   flex-shrink: 0;
   background: var(--putih);
@@ -353,9 +358,9 @@ html:has(.layout), body:has(.layout) {
 
 @media (max-width: 900px) {
   .katalog-header-top { flex-direction: column; }
-  .top3-header { width: 100%; }
+  .section-title { padding-right: 0; }
+  .top3-header { position: static; width: 100%; margin-top: 12px; }
 }
-
 .card {
   background: var(--putih);
   border: 1px solid var(--garis);
