@@ -37,51 +37,66 @@
 
   <!-- KOLOM KIRI: Kelola Karya -->
   <div class="admin-col">
-    <div class="panel" style="flex-shrink:0;">
-      <h3 id="form-title">Tambah Karya Baru</h3>
-      <div class="form-grid" style="grid-template-columns: 1fr 1fr 1.4fr;">
-        <div>
-          <label>Kategori</label>
-          <select id="f-kategori">
-            <option>Infografis</option>
-            <option>Videografis</option>
-            <option>Flyer</option>
-            <option>Join Riset</option>
-          </select>
-        </div>
-        <div>
-          <label>Seri</label>
-          <input id="f-seri" placeholder='Contoh: 1, 2, atau "Ekonomi"'>
-        </div>
-        <div>
-          <label>Nama Mahasiswa</label>
-          <input id="f-mahasiswa" placeholder="Nama mahasiswa, atau nomor kelompok (misal: 1)">
-        </div>
-      </div>
-      <div class="form-grid">
-        <div>
-          <label>Link Google Drive</label>
-          <input id="f-embed" placeholder="https://drive.google.com/file/d/....">
-        </div>
-        <div>
-          <label>Link Thumbnail <span style="font-weight:400;color:var(--abu)">(opsional)</span></label>
-          <input id="f-thumb" placeholder="Kosongkan untuk ambil otomatis dari Drive">
-        </div>
-      </div>
-      <div class="row-actions">
-        <button class="btn btn-primary" id="btn-add">Tambah Karya</button>
-        <button class="btn btn-outline" id="btn-cancel-edit" style="display:none;">Batal</button>
-        <p class="status-msg" id="add-msg"></p>
-      </div>
-    </div>
-
     <div class="panel" style="flex:1; min-height:0; display:flex; flex-direction:column;">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
         <h3 style="margin:0;">Daftar Karya Tersimpan</h3>
-        <button class="btn btn-secondary" id="btn-sync" title="Sync dari Pengumpulan (sheet O1–O4)" style="flex-shrink:0;">⟳ Sync</button>
+        <div style="display:flex; gap:8px; flex-shrink:0;">
+          <button class="btn btn-primary" id="btn-open-add" style="font-size:12.5px; padding:8px 14px;">+ Tambah Karya</button>
+          <button class="btn btn-secondary" id="btn-sync" title="Sync dari Pengumpulan (sheet O1–O4)">⟳ Sync</button>
+        </div>
       </div>
       <p class="status-msg" id="sync-msg"></p>
       <div id="konten-table" style="flex:1; overflow-y:auto;">Memuat...</div>
+    </div>
+  </div>
+
+  <!-- MODAL: Tambah / Edit Karya -->
+  <div class="modal-overlay" id="karya-modal-overlay">
+    <div class="modal-box" style="width:min(520px, 100%);">
+      <div class="modal-header">
+        <h3 id="form-title">Tambah Karya Baru</h3>
+        <button class="modal-close" id="karya-modal-close">&times;</button>
+      </div>
+      <div style="padding:18px 22px;">
+        <div class="form-grid full">
+          <div>
+            <label>Kategori</label>
+            <select id="f-kategori">
+              <option>Infografis</option>
+              <option>Videografis</option>
+              <option>Flyer</option>
+              <option>Join Riset</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label>Seri</label>
+            <input id="f-seri" placeholder='Contoh: 1, 2, atau "Ekonomi"'>
+          </div>
+          <div>
+            <label>Nama Mahasiswa</label>
+            <input id="f-mahasiswa" placeholder="Nama, atau nomor kelompok">
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div>
+            <label>Link Google Drive</label>
+            <input id="f-embed" placeholder="https://drive.google.com/file/d/....">
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div>
+            <label>Link Thumbnail <span style="font-weight:400;color:var(--abu)">(opsional)</span></label>
+            <input id="f-thumb" placeholder="Kosongkan untuk ambil otomatis dari Drive">
+          </div>
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-primary" id="btn-add">Tambah Karya</button>
+          <button class="btn btn-outline" id="btn-cancel-edit">Batal</button>
+          <p class="status-msg" id="add-msg"></p>
+        </div>
+      </div>
     </div>
   </div>
 

@@ -164,6 +164,14 @@ function renderSidebar() {
     <button class="leaderboard-link" id="btn-leaderboard">
       <span class="icon-wrap">${iconTrophy()}</span> Leaderboard
     </button>
+    <div class="sidebar-art">
+      <div class="sidebar-art-title">
+        ${"GALASTIS".split("").map((ch, i) => `<span style="animation-delay:${i * 0.12}s">${ch}</span>`).join("")}
+      </div>
+      <div class="sidebar-art-tag">
+        ${["Magang", "Seru,", "Ilmu", "Baru,", "Karya", "Maju"].map((w, i) => `<span style="animation-delay:${1 + i * 0.35}s">${w}</span>`).join(" ")}
+      </div>
+    </div>
   `;
 
   sidebar.querySelectorAll(".cat-btn").forEach(btn => {

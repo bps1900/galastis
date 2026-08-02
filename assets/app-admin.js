@@ -24,7 +24,17 @@ function init() {
   loadPegawaiTable();
 }
 
-// ====== FORM KARYA: Tambah / Edit ======
+// ====== FORM KARYA: Tambah / Edit (via modal popup) ======
+
+const karyaOverlay = document.getElementById("karya-modal-overlay");
+
+document.getElementById("btn-open-add").addEventListener("click", () => {
+  resetForm();
+  openKaryaModal();
+});
+
+document.getElementById("karya-modal-close").addEventListener("click", closeKaryaModal);
+karyaOverlay.addEventListener("click", e => { if (e.target === karyaOverlay) closeKaryaModal(); });
 
 document.getElementById("btn-add").addEventListener("click", async () => {
   if (editingId) {
@@ -35,8 +45,17 @@ document.getElementById("btn-add").addEventListener("click", async () => {
 });
 
 document.getElementById("btn-cancel-edit").addEventListener("click", () => {
-  resetForm();
+  closeKaryaModal();
 });
+
+function openKaryaModal() {
+  karyaOverlay.classList.add("open");
+}
+
+function closeKaryaModal() {
+  karyaOverlay.classList.remove("open");
+  resetForm();
+}
 
 async function addKonten() {
   const msg = document.getElementById("add-msg");
@@ -61,8 +80,8 @@ async function addKonten() {
     if (json.error) throw new Error(json.error);
     msg.textContent = "Karya berhasil ditambahkan.";
     msg.className = "status-msg ok";
-    resetForm();
     loadKontenTable();
+    setTimeout(closeKaryaModal, 500);
   } catch (err) {
     msg.textContent = err.message;
     msg.className = "status-msg err";
@@ -93,8 +112,8 @@ async function saveEdit() {
     if (json.error) throw new Error(json.error);
     msg.textContent = "Karya berhasil diperbarui.";
     msg.className = "status-msg ok";
-    resetForm();
     loadKontenTable();
+    setTimeout(closeKaryaModal, 500);
   } catch (err) {
     msg.textContent = err.message;
     msg.className = "status-msg err";
@@ -110,9 +129,8 @@ function startEdit(item) {
   document.getElementById("f-embed").value = item.EmbedLink || "";
   document.getElementById("f-thumb").value = item.Thumbnail || "";
   document.getElementById("btn-add").textContent = "Simpan Perubahan";
-  document.getElementById("btn-add").className = "btn btn-primary";
-  document.getElementById("btn-cancel-edit").style.display = "inline-block";
   document.getElementById("add-msg").textContent = "";
+  openKaryaModal();
   document.getElementById("f-seri").focus();
 }
 
@@ -120,7 +138,6 @@ function resetForm() {
   editingId = null;
   document.getElementById("form-title").textContent = "Tambah Karya Baru";
   document.getElementById("btn-add").textContent = "Tambah Karya";
-  document.getElementById("btn-cancel-edit").style.display = "none";
   document.getElementById("add-msg").textContent = "";
   ["f-seri", "f-mahasiswa", "f-embed", "f-thumb"].forEach(id => (document.getElementById(id).value = ""));
   document.getElementById("f-kategori").selectedIndex = 0;
