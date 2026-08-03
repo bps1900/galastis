@@ -467,12 +467,6 @@ function openModal(id) {
   const item = STATE.data.konten.find(k => String(k.ID) === String(id));
   if (!item) return;
 
-  // Reset dirty flag hanya kalau ini bukan re-render dari modal yang sudah terbuka
-  if (!window._modalDirtyId || window._modalDirtyId !== id) {
-    window._modalDirty = false;
-    window._modalDirtyId = null;
-  }
-
   const overlay = document.getElementById("modal-overlay");
   const isImageKategori = item.Kategori === "Infografis" || item.Kategori === "Flyer";
   const driveId = driveFileId(item.EmbedLink);
@@ -576,11 +570,6 @@ function openModal(id) {
 function closeModal() {
   document.getElementById("modal-overlay").classList.remove("open");
   document.getElementById("modal-overlay").innerHTML = "";
-  if (window._modalDirty) {
-    window._modalDirty = false;
-    refreshCardStats(window._modalDirtyId);
-    refreshTop3Header();
-  }
 }
 
 // Rantai fallback: link resolusi tinggi -> thumbnail besar -> iframe Drive
@@ -721,10 +710,7 @@ async function toggleLike(item) {
     btn.classList.toggle("liked", nowLiked);
     btn.innerHTML = `${iconLike(nowLiked)} <span id="like-label">${nowLiked ? "Disukai" : "Suka"}</span>`;
     document.getElementById("like-count").textContent = `${likeCountFor(item.ID)} suka`;
-    window._modalDirty = true;
-    window._modalDirtyId = item.ID;
-    refreshTop3Header();
-    refreshCardStats(item.ID);
+    renderKatalog();
   } catch (err) {
     // Restore tombol ke kondisi semula jika gagal
     btn.innerHTML = `${iconLike(wasLiked)} <span id="like-label">${wasLiked ? "Disukai" : "Suka"}</span>`;
@@ -778,9 +764,6 @@ async function submitComment(item) {
     });
     textarea.value = "";
     msg.textContent = "";
-    window._modalDirty = true;
-    window._modalDirtyId = item.ID;
-    refreshCardStats(item.ID);
     openModal(item.ID); // re-render dengan komentar terbaru
   } catch (err) {
     msg.textContent = err.message;
