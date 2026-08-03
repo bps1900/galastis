@@ -306,6 +306,28 @@ function renderKatalog() {
   }
 }
 
+// Update stats (like & comment) pada kartu galeri dengan animasi kedip halus
+function refreshCardStats(itemId) {
+  const card = document.querySelector(`.card[data-id="${itemId}"]`);
+  if (!card) return;
+  const statsEl = card.querySelector(".card-stats");
+  if (!statsEl) return;
+
+  const likes = likeCountFor(itemId);
+  const comments = commentsFor(itemId).length;
+
+  statsEl.style.transition = "opacity 0.18s ease";
+  statsEl.style.opacity = "0";
+
+  setTimeout(() => {
+    statsEl.innerHTML = `
+      <span>${iconLike(false)} ${likes}</span>
+      <span>${iconComment()} ${comments}</span>
+    `;
+    statsEl.style.opacity = "1";
+  }, 180);
+}
+
 // Refresh isi panel Top 3 di header (dipanggil ulang setelah like berubah)
 function refreshTop3Header() {
   const box = document.getElementById("top3-header");
@@ -683,6 +705,7 @@ async function toggleLike(item) {
     btn.innerHTML = `${iconLike(nowLiked)} <span id="like-label">${nowLiked ? "Disukai" : "Suka"}</span>`;
     document.getElementById("like-count").textContent = `${likeCountFor(item.ID)} suka`;
     refreshTop3Header();
+    refreshCardStats(item.ID);
   } catch (err) {
     // Restore tombol ke kondisi semula jika gagal
     btn.innerHTML = `${iconLike(wasLiked)} <span id="like-label">${wasLiked ? "Disukai" : "Suka"}</span>`;
@@ -736,6 +759,7 @@ async function submitComment(item) {
     });
     textarea.value = "";
     msg.textContent = "";
+    refreshCardStats(item.ID);
     openModal(item.ID); // re-render dengan komentar terbaru
   } catch (err) {
     msg.textContent = err.message;
