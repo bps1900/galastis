@@ -335,7 +335,13 @@ function refreshTop3Header() {
   if (!box || !activeTab || !STATE.data) return;
   const seri = activeTab.dataset.seri;
   const items = (STATE.data.konten || []).filter(k => k.Kategori === STATE.activeKategori && k.Seri === seri);
-  box.innerHTML = top3PanelInner(items);
+
+  box.style.transition = "opacity 0.18s ease";
+  box.style.opacity = "0";
+  setTimeout(() => {
+    box.innerHTML = top3PanelInner(items);
+    box.style.opacity = "1";
+  }, 180);
 }
 
 // Isi Top 3 like terbanyak untuk satu seri (emas/perak/perunggu) — selalu 3 slot tetap, tidak pernah berubah tinggi
