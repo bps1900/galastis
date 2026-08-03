@@ -621,7 +621,7 @@ function setupImageZoom(img) {
     apply();
   }, { passive: false });
 
-  img.addEventListener("dblclick", () => {
+  img.addEventListener("click", () => {
     scale = scale > MIN_SCALE ? MIN_SCALE : 2.5;
     tx = 0; ty = 0;
     apply();
