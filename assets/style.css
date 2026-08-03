@@ -604,6 +604,17 @@ html:has(.layout), body:has(.layout) {
 .like-btn:hover { background: var(--biru-muda); color: var(--biru); }
 .like-btn.liked { background: var(--biru-muda); color: var(--biru); border-color: var(--biru); }
 .like-btn.liked svg { transform: scale(1.1); fill: var(--biru); }
+.like-spinner {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  opacity: 0.6;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
 .like-count { font-size: 13px; color: var(--abu); }
 
 .comment-section {

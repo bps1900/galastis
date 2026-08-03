@@ -652,6 +652,9 @@ async function toggleLike(item) {
   btn.disabled = true;
   const wasLiked = isLikedByMe(item.ID);
 
+  // Tampilkan spinner loading di tombol
+  btn.innerHTML = `<span class="like-spinner"></span> <span id="like-label">${wasLiked ? "Disukai" : "Suka"}</span>`;
+
   try {
     const res = await fetch(API_URL, {
       method: "POST",
@@ -665,7 +668,7 @@ async function toggleLike(item) {
     const json = await res.json();
     if (json.error) throw new Error(json.error);
 
-    // Perbarui state lokal secara optimis
+    // Perbarui state lokal
     if (wasLiked) {
       STATE.data.likes = STATE.data.likes.filter(
         l => !(String(l.KaryaId) === String(item.ID) && String(l.NIP) === String(user.nip))
@@ -681,6 +684,8 @@ async function toggleLike(item) {
     document.getElementById("like-count").textContent = `${likeCountFor(item.ID)} suka`;
     refreshTop3Header();
   } catch (err) {
+    // Restore tombol ke kondisi semula jika gagal
+    btn.innerHTML = `${iconLike(wasLiked)} <span id="like-label">${wasLiked ? "Disukai" : "Suka"}</span>`;
     alert(err.message);
   } finally {
     btn.disabled = false;
