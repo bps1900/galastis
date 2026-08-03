@@ -601,6 +601,8 @@ function setupImageZoom(img) {
   let scale = 1, originX = 50, originY = 50;
   let tx = 0, ty = 0;
   let panning = false, startX = 0, startY = 0, startTx = 0, startTy = 0;
+  let moved = false;
+  const DRAG_THRESHOLD = 5; // px, toleransi gerakan sebelum dianggap drag bukan klik
 
   function apply() {
     img.style.transformOrigin = `${originX}% ${originY}%`;
@@ -622,6 +624,8 @@ function setupImageZoom(img) {
   }, { passive: false });
 
   img.addEventListener("click", () => {
+    // Kalau ini bagian dari drag (mouse sempat bergeser cukup jauh), jangan toggle zoom
+    if (moved) { moved = false; return; }
     scale = scale > MIN_SCALE ? MIN_SCALE : 2.5;
     tx = 0; ty = 0;
     apply();
@@ -631,12 +635,16 @@ function setupImageZoom(img) {
     if (scale <= MIN_SCALE) return;
     e.preventDefault();
     panning = true;
+    moved = false;
     startX = e.clientX; startY = e.clientY;
     startTx = tx; startTy = ty;
     img.style.cursor = "grabbing";
   });
   window.addEventListener("mousemove", e => {
     if (!panning) return;
+    if (Math.abs(e.clientX - startX) > DRAG_THRESHOLD || Math.abs(e.clientY - startY) > DRAG_THRESHOLD) {
+      moved = true;
+    }
     tx = startTx + (e.clientX - startX) / scale;
     ty = startTy + (e.clientY - startY) / scale;
     apply();
