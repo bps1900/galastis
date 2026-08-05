@@ -43,6 +43,9 @@ function iconLike(filled) {
 function iconComment() {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4 8.5 8.5 0 0 1-4-1L3 20l1.1-3.5A8.38 8.38 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg>`;
 }
+function iconCaret() {
+  return `<svg class="dd-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
+}
 
 // ====== INIT ======
 document.addEventListener("DOMContentLoaded", () => {
@@ -150,6 +153,51 @@ function renderHeader() {
   }
 }
 
+// ====== DROPDOWN KUSTOM (modern, dipakai untuk filter tahun) ======
+// container: elemen DOM tempat dropdown dirender
+// options: array string, value: string terpilih saat ini, onChange: callback(val)
+// theme: "header" (pill di header gelap) atau "light" (kotak putih, dipakai di admin)
+function buildDropdown(container, options, value, onChange, theme, labelPrefix) {
+  const dd = document.createElement("div");
+  dd.className = `dd ${theme}`;
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "dd-toggle";
+  toggle.innerHTML = `<span class="dd-toggle-label">${labelPrefix}${escapeHtml(value)}</span>${iconCaret()}`;
+
+  const menu = document.createElement("div");
+  menu.className = "dd-menu";
+  menu.innerHTML = options.map(opt => `
+    <button type="button" class="dd-option ${opt === value ? "active" : ""}" data-val="${escapeHtml(opt)}">${labelPrefix}${escapeHtml(opt)}</button>
+  `).join("");
+
+  dd.appendChild(toggle);
+  dd.appendChild(menu);
+  container.innerHTML = "";
+  container.appendChild(dd);
+
+  function closeDd() { dd.classList.remove("open"); }
+  function toggleDd(e) {
+    e.stopPropagation();
+    const willOpen = !dd.classList.contains("open");
+    document.querySelectorAll(".dd.open").forEach(el => el.classList.remove("open"));
+    if (willOpen) dd.classList.add("open");
+  }
+
+  toggle.addEventListener("click", toggleDd);
+  menu.querySelectorAll(".dd-option").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const val = btn.dataset.val;
+      closeDd();
+      onChange(val);
+    });
+  });
+
+  document.addEventListener("click", closeDd);
+}
+
 // ====== FILTER TAHUN (di header, sejajar logo & login) ======
 function getAvailableYears() {
   const items = (STATE.data && STATE.data.konten) || [];
@@ -172,16 +220,11 @@ function renderYearFilter() {
     STATE.activeTahun = years[0];
   }
 
-  wrap.innerHTML = `
-    <select id="tahun-select" class="tahun-select">
-      ${years.map(y => `<option value="${y}" ${y === STATE.activeTahun ? "selected" : ""}>Tahun ${y}</option>`).join("")}
-    </select>
-  `;
-
-  document.getElementById("tahun-select").addEventListener("change", e => {
-    STATE.activeTahun = e.target.value;
+  buildDropdown(wrap, years, STATE.activeTahun, (val) => {
+    STATE.activeTahun = val;
+    renderYearFilter();
     renderMain();
-  });
+  }, "header", "Tahun ");
 }
 
 function renderSidebar() {
@@ -232,6 +275,27 @@ function renderMain() {
   renderKatalog();
 }
 
+// Kalau ada karya duplikat (kategori + seri + nama sama persis), ambil baris PALING TERAKHIR
+// di database (dianggap paling update). Urutan asli dari sheet dipertahankan untuk item lain.
+function dedupeKontenKeepLast(items) {
+  const map = new Map();
+  items.forEach(item => {
+    const key = [
+      String(item.Kategori || "").trim().toLowerCase(),
+      String(item.Seri || "").trim().toLowerCase(),
+      String(item.Mahasiswa || "").trim().toLowerCase()
+    ].join("|");
+    map.set(key, item); // overwrite -> yang tersisa otomatis baris paling terakhir
+  });
+  return items.filter(item => {
+    const key = [
+      String(item.Kategori || "").trim().toLowerCase(),
+      String(item.Seri || "").trim().toLowerCase(),
+      String(item.Mahasiswa || "").trim().toLowerCase()
+    ].join("|");
+    return map.get(key) === item;
+  });
+}
 
 // ====== Helpers untuk hitung like & comment per karya ======
 function likeCountFor(karyaId) {
@@ -252,9 +316,10 @@ function renderKatalog() {
   const main = document.getElementById("main");
   const kat = STATE.activeKategori;
   const tahun = STATE.activeTahun;
-  const items = (STATE.data.konten || []).filter(
+  let items = (STATE.data.konten || []).filter(
     k => k.Kategori === kat && (!tahun || String(k.Tahun || "").trim() === tahun)
   );
+  items = dedupeKontenKeepLast(items);
 
   const seriList = [...new Set(items.map(i => i.Seri))].sort();
   const itemsBySeri = {};

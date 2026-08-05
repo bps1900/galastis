@@ -26,6 +26,74 @@ function init() {
   loadPegawaiTable();
 }
 
+// ====== DROPDOWN KUSTOM (modern) ======
+function buildDropdown(container, options, value, onChange, theme, labelPrefix) {
+  const dd = document.createElement("div");
+  dd.className = `dd ${theme}`;
+
+  const caret = `<svg class="dd-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "dd-toggle";
+  toggle.innerHTML = `<span class="dd-toggle-label">${labelPrefix}${escHtml(value)}</span>${caret}`;
+
+  const menu = document.createElement("div");
+  menu.className = "dd-menu";
+  menu.innerHTML = options.map(opt => `
+    <button type="button" class="dd-option ${opt === value ? "active" : ""}" data-val="${escHtml(opt)}">${labelPrefix}${escHtml(opt)}</button>
+  `).join("");
+
+  dd.appendChild(toggle);
+  dd.appendChild(menu);
+  container.innerHTML = "";
+  container.appendChild(dd);
+
+  function closeDd() { dd.classList.remove("open"); }
+  toggle.addEventListener("click", e => {
+    e.stopPropagation();
+    const willOpen = !dd.classList.contains("open");
+    document.querySelectorAll(".dd.open").forEach(el => el.classList.remove("open"));
+    if (willOpen) dd.classList.add("open");
+  });
+  menu.querySelectorAll(".dd-option").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      closeDd();
+      onChange(btn.dataset.val);
+    });
+  });
+  document.addEventListener("click", closeDd);
+}
+
+function escHtml(str) {
+  return String(str || "").replace(/[&<>"']/g, s => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[s]));
+}
+
+// Kalau ada karya duplikat (kategori + seri + nama sama persis), ambil baris PALING TERAKHIR
+// di database (dianggap paling update/valid).
+function dedupeKontenKeepLast(items) {
+  const map = new Map();
+  items.forEach(item => {
+    const key = [
+      String(item.Kategori || "").trim().toLowerCase(),
+      String(item.Seri || "").trim().toLowerCase(),
+      String(item.Mahasiswa || "").trim().toLowerCase()
+    ].join("|");
+    map.set(key, item);
+  });
+  return items.filter(item => {
+    const key = [
+      String(item.Kategori || "").trim().toLowerCase(),
+      String(item.Seri || "").trim().toLowerCase(),
+      String(item.Mahasiswa || "").trim().toLowerCase()
+    ].join("|");
+    return map.get(key) === item;
+  });
+}
+
 // ====== FORM KARYA: Tambah / Edit (via modal popup) ======
 
 const karyaOverlay = document.getElementById("karya-modal-overlay");
@@ -48,11 +116,6 @@ document.getElementById("btn-add").addEventListener("click", async () => {
 
 document.getElementById("btn-cancel-edit").addEventListener("click", () => {
   closeKaryaModal();
-});
-
-document.getElementById("filter-tahun-admin").addEventListener("change", e => {
-  ADMIN_FILTER_TAHUN = e.target.value;
-  renderKontenTable();
 });
 
 function openKaryaModal() {
@@ -93,7 +156,7 @@ async function addKonten() {
     if (json.error) throw new Error(json.error);
     msg.textContent = "Karya berhasil ditambahkan.";
     msg.className = "status-msg ok";
-    loadKontenTable();
+    await fadeReloadKontenTable();
     setTimeout(closeKaryaModal, 500);
   } catch (err) {
     msg.textContent = err.message;
@@ -131,7 +194,7 @@ async function saveEdit() {
     if (json.error) throw new Error(json.error);
     msg.textContent = "Karya berhasil diperbarui.";
     msg.className = "status-msg ok";
-    loadKontenTable();
+    await fadeReloadKontenTable();
     setTimeout(closeKaryaModal, 500);
   } catch (err) {
     msg.textContent = err.message;
@@ -176,7 +239,10 @@ document.getElementById("btn-sync").addEventListener("click", async () => {
     if (json.error) throw new Error(json.error);
     msg.textContent = `Selesai. ${json.added} karya baru ditambahkan.`;
     msg.className = "status-msg ok";
-    loadKontenTable();
+    // Beri jeda sebentar supaya perubahan di Google Sheet konsisten sebelum dibaca ulang,
+    // lalu refresh otomatis dengan efek kedip halus (tanpa reload halaman).
+    await new Promise(r => setTimeout(r, 700));
+    await fadeReloadKontenTable();
   } catch (err) {
     msg.textContent = err.message;
     msg.className = "status-msg err";
@@ -216,7 +282,7 @@ async function loadKontenTable() {
     const res = await fetch(`${API_URL}?action=getData`);
     const json = await res.json();
     if (json.error) throw new Error(json.error);
-    LAST_KONTEN_ITEMS = json.konten || [];
+    LAST_KONTEN_ITEMS = dedupeKontenKeepLast(json.konten || []);
     populateFilterTahunAdmin(LAST_KONTEN_ITEMS);
     renderKontenTable();
   } catch (err) {
@@ -224,25 +290,44 @@ async function loadKontenTable() {
   }
 }
 
+// Reload data dengan animasi fade halus (dipakai setelah tambah/edit/sync karya)
+async function fadeReloadKontenTable() {
+  const wrap = document.getElementById("konten-table");
+  wrap.classList.add("fade-out");
+  await new Promise(r => setTimeout(r, 180));
+  try {
+    const res = await fetch(`${API_URL}?action=getData`);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    LAST_KONTEN_ITEMS = dedupeKontenKeepLast(json.konten || []);
+    populateFilterTahunAdmin(LAST_KONTEN_ITEMS);
+    renderKontenTable();
+  } catch (err) {
+    wrap.innerHTML = `<p class="status-msg err">${err.message}</p>`;
+  }
+  wrap.classList.remove("fade-out");
+}
+
 function populateFilterTahunAdmin(items) {
-  const select = document.getElementById("filter-tahun-admin");
+  const container = document.getElementById("filter-tahun-admin");
   const tahunList = [...new Set(items.map(i => String(i.Tahun || "").trim()).filter(Boolean))]
     .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
-  const prevValue = select.value || "all";
-  select.innerHTML = `<option value="all">Semua Tahun</option>` +
-    tahunList.map(t => `<option value="${t}">${t}</option>`).join("");
-  if ([...select.options].some(o => o.value === prevValue)) {
-    select.value = prevValue;
-    ADMIN_FILTER_TAHUN = prevValue;
-  } else {
-    select.value = "all";
-    ADMIN_FILTER_TAHUN = "all";
+  const options = ["Semua Tahun", ...tahunList];
+
+  if (!options.includes(ADMIN_FILTER_TAHUN)) {
+    ADMIN_FILTER_TAHUN = "Semua Tahun";
   }
+
+  buildDropdown(container, options, ADMIN_FILTER_TAHUN, (val) => {
+    ADMIN_FILTER_TAHUN = val;
+    populateFilterTahunAdmin(LAST_KONTEN_ITEMS);
+    renderKontenTable();
+  }, "light", "");
 }
 
 function renderKontenTable() {
   const wrap = document.getElementById("konten-table");
-  const items = ADMIN_FILTER_TAHUN === "all"
+  const items = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
     ? LAST_KONTEN_ITEMS
     : LAST_KONTEN_ITEMS.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
 
@@ -327,7 +412,7 @@ async function deleteKonten(id) {
     const json = await postApi({ action: "deleteKonten", secret: ADMIN_SECRET_INPUT, id });
     if (json.error) throw new Error(json.error);
     if (editingId === id) resetForm();
-    loadKontenTable();
+    await fadeReloadKontenTable();
   } catch (err) {
     alert(err.message);
   }
