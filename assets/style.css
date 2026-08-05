@@ -40,22 +40,20 @@ a { color: inherit; }
   justify-content: space-between;
   gap: 20px;
   position: relative;
-  /* overflow: hidden dihapus agar dropdown tahun bisa keluar dari header */
+  overflow: hidden;
 }
 
 .app-header::after {
   content: "";
   position: absolute;
-  right: 0;
-  top: -30px;
-  width: 160px;
-  height: 160px;
+  right: -60px;
+  top: -60px;
+  width: 220px;
+  height: 220px;
   background: var(--oren);
   opacity: 0.18;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 0;
-  clip-path: inset(0 0 0 0);
 }
 
 .header-left {
@@ -224,6 +222,12 @@ a { color: inherit; }
 
 @media (max-width: 720px) {
   .dd.header .dd-toggle { font-size: 12px; padding: 8px 13px; }
+}
+
+/* Menu dropdown yang di-mount ke body (fixed, selalu di atas segalanya) */
+.dd-menu-fixed {
+  position: fixed !important;
+  z-index: 9999 !important;
 }
 
 /* ---------- Fade transition (refresh data halus) ---------- */

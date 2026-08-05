@@ -167,22 +167,39 @@ function buildDropdown(container, options, value, onChange, theme, labelPrefix) 
   toggle.innerHTML = `<span class="dd-toggle-label">${labelPrefix}${escapeHtml(value)}</span>${iconCaret()}`;
 
   const menu = document.createElement("div");
-  menu.className = "dd-menu";
+  menu.className = "dd-menu dd-menu-fixed";
   menu.innerHTML = options.map(opt => `
     <button type="button" class="dd-option ${opt === value ? "active" : ""}" data-val="${escapeHtml(opt)}">${labelPrefix}${escapeHtml(opt)}</button>
   `).join("");
 
+  // Pasang menu ke body agar tidak terpotong overflow/z-index apapun
+  document.body.appendChild(menu);
   dd.appendChild(toggle);
-  dd.appendChild(menu);
   container.innerHTML = "";
   container.appendChild(dd);
 
-  function closeDd() { dd.classList.remove("open"); }
+  function positionMenu() {
+    const rect = toggle.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 8) + "px";
+    menu.style.left = rect.left + "px";
+    menu.style.minWidth = Math.max(rect.width, 150) + "px";
+  }
+
+  function closeDd() {
+    dd.classList.remove("open");
+    menu.classList.remove("open");
+  }
+  function openDd() {
+    positionMenu();
+    dd.classList.add("open");
+    menu.classList.add("open");
+  }
   function toggleDd(e) {
     e.stopPropagation();
     const willOpen = !dd.classList.contains("open");
     document.querySelectorAll(".dd.open").forEach(el => el.classList.remove("open"));
-    if (willOpen) dd.classList.add("open");
+    document.querySelectorAll(".dd-menu-fixed.open").forEach(el => el.classList.remove("open"));
+    if (willOpen) openDd();
   }
 
   toggle.addEventListener("click", toggleDd);
@@ -195,7 +212,11 @@ function buildDropdown(container, options, value, onChange, theme, labelPrefix) 
     });
   });
 
-  document.addEventListener("click", closeDd);
+  document.addEventListener("click", e => {
+    if (!dd.contains(e.target) && !menu.contains(e.target)) closeDd();
+  });
+  window.addEventListener("resize", () => { if (dd.classList.contains("open")) positionMenu(); });
+  window.addEventListener("scroll", () => { if (dd.classList.contains("open")) positionMenu(); }, true);
 }
 
 // ====== FILTER TAHUN (di header, sejajar logo & login) ======
