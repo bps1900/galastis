@@ -344,7 +344,7 @@ function renderKatalog() {
         </div>
         ${seriList.length > 0 ? `<div class="top3-header" id="top3-header"></div>` : ""}
       </div>
-      <p class="section-sub">Klik salah satu karya untuk melihat tampilan penuh, like, dan berkomentar.${tahun ? ` <span style="color:var(--biru); font-weight:600;">Menampilkan tahun ${escapeHtml(tahun)}.</span>` : ""}</p>
+      <p class="section-sub">Klik salah satu karya untuk melihat tampilan penuh, like, dan berkomentar.</p>
     </div>
     ${
       items.length === 0

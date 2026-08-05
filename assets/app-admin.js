@@ -357,7 +357,7 @@ function renderKontenTable() {
     });
   });
   wrap.querySelectorAll(".del-btn").forEach(btn => {
-    btn.addEventListener("click", () => deleteKonten(btn.dataset.id));
+    btn.addEventListener("click", () => deleteKonten(btn.dataset.id, btn));
   });
 }
 
@@ -406,14 +406,28 @@ async function deletePegawai(nip) {
   }
 }
 
-async function deleteKonten(id) {
+async function deleteKonten(id, btn) {
   if (!confirm("Hapus karya ini?")) return;
+  // Tampilkan loading state di tombol & card
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="like-spinner"></span>`;
+    const card = btn.closest(".admin-card");
+    if (card) card.style.opacity = "0.5";
+  }
   try {
     const json = await postApi({ action: "deleteKonten", secret: ADMIN_SECRET_INPUT, id });
     if (json.error) throw new Error(json.error);
     if (editingId === id) resetForm();
     await fadeReloadKontenTable();
   } catch (err) {
+    // Restore tombol jika gagal
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = "Hapus";
+      const card = btn.closest(".admin-card");
+      if (card) card.style.opacity = "";
+    }
     alert(err.message);
   }
 }
