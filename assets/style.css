@@ -167,7 +167,8 @@ a { color: inherit; }
   max-height: 260px;
   overflow-y: auto;
 }
-.dd.open .dd-menu {
+.dd.open .dd-menu,
+.dd-menu-fixed.open {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
