@@ -976,61 +976,139 @@ th { color: var(--abu); font-weight: 600; font-size: 11px; text-transform: upper
 /* ---------- Responsive ---------- */
 
 @media (max-width: 720px) {
+  /* Layout */
   html:has(.layout), body:has(.layout) { height: auto; overflow: visible; }
   .layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
+
+  /* Sidebar jadi horizontal scrollable di atas */
   .sidebar {
     display: flex;
     flex-direction: row;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     border-right: none;
     border-bottom: 1px solid var(--garis);
-    padding: 10px 12px;
-    gap: 8px;
+    padding: 10px 14px;
+    gap: 6px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--putih);
   }
+  .sidebar::-webkit-scrollbar { display: none; }
   .sidebar-label, .sidebar-divider { display: none; }
-  .cat-btn, .leaderboard-link { width: auto; white-space: nowrap; flex-shrink: 0; }
-  .main { padding: 0 14px 40px; overflow-y: visible; }
-  .katalog-header { top: 0; padding-top: 16px; }
-
-  .app-header {
-    padding: 14px 16px;
-    flex-wrap: wrap;
-    gap: 10px;
+  .cat-btn {
+    width: auto;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 9px 14px;
+    font-size: 13.5px;
+    min-height: 44px; /* touch target */
   }
-  .header-left { flex-wrap: wrap; gap: 10px; }
-  .brand { gap: 10px; }
-  .brand-logo { width: 32px; height: 32px; }
-  .brand-text h1 { font-size: 16.5px; }
-  .brand-text p { font-size: 11px; line-height: 1.35; }
-  .header-actions { gap: 8px; }
-  .header-actions a, .header-actions button { font-size: 12px; padding: 8px 12px; }
-  .header-user { font-size: 12px; }
+  .cat-btn .icon-wrap { width: 26px; height: 26px; }
 
+  /* Main */
+  .main { padding: 0 14px 56px; overflow-y: visible; }
+  .katalog-header {
+    top: 0;
+    padding-top: 14px;
+    padding-bottom: 4px;
+  }
+
+  /* Header */
+  .app-header {
+    padding: 12px 16px;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .header-left {
+    flex-wrap: nowrap;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .brand { gap: 8px; min-width: 0; }
+  .brand-logo { width: 30px; height: 30px; }
+  .brand-text { min-width: 0; }
+  .brand-text h1 { font-size: 15px; white-space: nowrap; }
+  .brand-text p { display: none; } /* sembunyikan subtitle di HP */
+  .header-year { flex-shrink: 0; }
+  .header-actions { gap: 6px; flex-shrink: 0; }
+  .header-actions a, .header-actions button {
+    font-size: 12px;
+    padding: 8px 12px;
+    min-height: 38px;
+  }
+  .header-user { display: none; } /* "Halo, Nama" disembunyikan, cukup tombol Logout */
+  .dd.header .dd-toggle { font-size: 12px; padding: 8px 12px; }
+
+  /* Section title & top3 */
+  .section-title { padding-right: 0; flex-direction: column; align-items: flex-start; gap: 8px; }
   .section-title h2 { font-size: 20px; }
-  .section-sub { font-size: 13px; margin-bottom: 16px; }
-  .seri-tab { font-size: 11px; padding: 5px 11px; }
+  .katalog-header-top { flex-direction: column; gap: 10px; }
+  .top3-header { position: static; width: 100%; margin-top: 0; }
+  .section-sub { font-size: 13px; margin-bottom: 14px; margin-top: 6px; }
+  .seri-tab { font-size: 11.5px; padding: 6px 12px; min-height: 34px; }
 
-  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  /* Grid karya */
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .card-title { font-size: 13px; }
   .card-body { padding: 10px 11px 12px; }
+  .card-stats { font-size: 11px; }
 
-  .modal-box-split { width: 100%; height: 94vh; border-radius: 14px; }
-  .modal-split-body { grid-template-columns: 1fr; }
+  /* Modal jadi bottom sheet */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal-box { border-radius: 20px 20px 0 0; width: 100%; max-height: 96vh; }
+  .modal-box-split {
+    width: 100%;
+    height: 96vh;
+    max-height: 96vh;
+    border-radius: 20px 20px 0 0;
+  }
+  .modal-split-body { grid-template-columns: 1fr; overflow-y: auto; }
   .modal-preview-col { border-right: none; border-bottom: 1px solid var(--garis); }
-  .modal-preview-col .modal-frame-wrap { height: 34vh; flex: none; }
-  .modal-side-col { max-height: 48vh; }
-  .modal-frame-wrap iframe { height: 34vh; }
+  .modal-preview-col .modal-frame-wrap { height: 38vh; min-height: unset; flex: none; }
+  .modal-side-col { max-height: none; overflow-y: visible; }
+  .modal-frame-wrap iframe { height: 38vh; }
   .modal-header { padding: 14px 16px; }
   .modal-header h3 { font-size: 15px; }
-  .social-bar { padding: 12px 16px; flex-wrap: wrap; }
-  .comment-section { padding: 4px 16px 16px; }
+  .modal-header p { font-size: 12px; }
+  .modal-close { width: 38px; height: 38px; font-size: 18px; } /* lebih gede untuk touch */
+  .social-bar { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+  .like-btn { min-height: 40px; padding: 8px 18px; } /* touch-friendly */
+  .comment-section { padding: 4px 16px 24px; }
   .comment-form { flex-direction: column; }
-  .comment-form textarea { min-height: 60px; }
+  .comment-form textarea { min-height: 70px; font-size: 14px; }
+  .comment-form .btn { width: 100%; padding: 11px; }
+  .comment-item .c-text { font-size: 13px; }
 
+  /* Login overlay jadi bottom sheet di HP */
+  #login-overlay { padding: 0; align-items: flex-end; }
+  #login-overlay .login-box {
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 28px 20px 32px;
+  }
+  /* Swipe handle indicator di modal */
+  .modal-box-split::before,
+  #login-overlay .login-box::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: var(--garis);
+    border-radius: 999px;
+    margin: 0 auto 16px;
+  }
+  .modal-header { padding-top: 8px; }
+
+  /* Login page standalone */
   .login-wrap { min-height: calc(100vh - 90px); height: auto; padding: 20px 16px; }
   .login-box { padding: 24px 20px 20px; }
 
+  /* Admin */
   .admin-wrap-wide { padding: 10px; }
   .form-grid { grid-template-columns: 1fr !important; }
   .admin-grid { grid-template-columns: 1fr; }
@@ -1038,6 +1116,6 @@ th { color: var(--abu); font-weight: 600; font-size: 11px; text-transform: upper
 }
 
 @media (max-width: 380px) {
-  .brand-text p { display: none; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .card-title { font-size: 12px; }
 }
