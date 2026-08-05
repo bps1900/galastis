@@ -46,6 +46,12 @@
         </div>
       </div>
       <p class="status-msg" id="sync-msg"></p>
+      <div style="display:flex; gap:6px; margin:6px 0 4px; flex-shrink:0;">
+        <label style="font-size:11.5px; font-weight:600; color:var(--abu); align-self:center;">Filter tahun:</label>
+        <select id="filter-tahun-admin" style="width:auto; padding:5px 8px; border-radius:8px; border:1px solid var(--garis); font-size:12px;">
+          <option value="all">Semua Tahun</option>
+        </select>
+      </div>
       <div id="konten-table" style="flex:1; overflow-y:auto;">Memuat...</div>
     </div>
   </div>
@@ -58,7 +64,7 @@
         <button class="modal-close" id="karya-modal-close">&times;</button>
       </div>
       <div style="padding:18px 22px;">
-        <div class="form-grid full">
+        <div class="form-grid">
           <div>
             <label>Kategori</label>
             <select id="f-kategori">
@@ -67,6 +73,10 @@
               <option>Flyer</option>
               <option>Join Riset</option>
             </select>
+          </div>
+          <div>
+            <label>Tahun</label>
+            <input id="f-tahun" type="number" placeholder="Contoh: 2026" min="2000" max="2100">
           </div>
         </div>
         <div class="form-grid">

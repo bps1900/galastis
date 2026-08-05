@@ -2,6 +2,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw4-Fi9SaSTB1Ain86-9xEG
 
 let ADMIN_SECRET_INPUT = "";
 let editingId = null; // null = mode tambah, ada id = mode edit
+let LAST_KONTEN_ITEMS = [];
+let ADMIN_FILTER_TAHUN = "all";
 
 document.addEventListener("DOMContentLoaded", init);
 document.getElementById("btn-logout").addEventListener("click", () => {
@@ -48,6 +50,11 @@ document.getElementById("btn-cancel-edit").addEventListener("click", () => {
   closeKaryaModal();
 });
 
+document.getElementById("filter-tahun-admin").addEventListener("change", e => {
+  ADMIN_FILTER_TAHUN = e.target.value;
+  renderKontenTable();
+});
+
 function openKaryaModal() {
   karyaOverlay.classList.add("open");
 }
@@ -66,10 +73,16 @@ async function addKonten() {
     seri: val("f-seri"),
     mahasiswa: val("f-mahasiswa"),
     embedLink: val("f-embed"),
-    thumbnail: val("f-thumb")
+    thumbnail: val("f-thumb"),
+    tahun: val("f-tahun")
   };
   if (!payload.seri || !payload.mahasiswa || !payload.embedLink) {
     msg.textContent = "Seri, nama mahasiswa, dan link Drive wajib diisi.";
+    msg.className = "status-msg err";
+    return;
+  }
+  if (!payload.tahun) {
+    msg.textContent = "Tahun wajib diisi.";
     msg.className = "status-msg err";
     return;
   }
@@ -98,10 +111,16 @@ async function saveEdit() {
     seri: val("f-seri"),
     mahasiswa: val("f-mahasiswa"),
     embedLink: val("f-embed"),
-    thumbnail: val("f-thumb")
+    thumbnail: val("f-thumb"),
+    tahun: val("f-tahun")
   };
   if (!payload.seri || !payload.mahasiswa || !payload.embedLink) {
     msg.textContent = "Seri, nama mahasiswa, dan link Drive wajib diisi.";
+    msg.className = "status-msg err";
+    return;
+  }
+  if (!payload.tahun) {
+    msg.textContent = "Tahun wajib diisi.";
     msg.className = "status-msg err";
     return;
   }
@@ -128,6 +147,7 @@ function startEdit(item) {
   document.getElementById("f-mahasiswa").value = item.Mahasiswa || "";
   document.getElementById("f-embed").value = item.EmbedLink || "";
   document.getElementById("f-thumb").value = item.Thumbnail || "";
+  document.getElementById("f-tahun").value = item.Tahun || new Date().getFullYear();
   document.getElementById("btn-add").textContent = "Simpan Perubahan";
   document.getElementById("add-msg").textContent = "";
   openKaryaModal();
@@ -141,6 +161,7 @@ function resetForm() {
   document.getElementById("add-msg").textContent = "";
   ["f-seri", "f-mahasiswa", "f-embed", "f-thumb"].forEach(id => (document.getElementById(id).value = ""));
   document.getElementById("f-kategori").selectedIndex = 0;
+  document.getElementById("f-tahun").value = new Date().getFullYear();
 }
 
 // ====== SYNC DARI PENGUMPULAN ======
@@ -195,38 +216,64 @@ async function loadKontenTable() {
     const res = await fetch(`${API_URL}?action=getData`);
     const json = await res.json();
     if (json.error) throw new Error(json.error);
-    const items = json.konten || [];
-    if (items.length === 0) {
-      wrap.innerHTML = `<p style="color:var(--abu)">Belum ada karya.</p>`;
-      return;
-    }
-    wrap.innerHTML = `
-      <div class="admin-grid">
-        ${items.map(i => `
-          <div class="admin-card">
-            <div class="admin-card-info">
-              <span class="admin-card-badge">${i.Kategori} · Seri ${i.Seri}</span>
-              <p class="admin-card-name">${i.Mahasiswa || "-"}</p>
-            </div>
-            <div class="admin-card-actions">
-              <button class="edit-btn" data-id="${i.ID}">Edit</button>
-              <button class="del-btn" data-id="${i.ID}">Hapus</button>
-            </div>
-          </div>`).join("")}
-      </div>
-    `;
-    wrap.querySelectorAll(".edit-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const item = items.find(i => String(i.ID) === String(btn.dataset.id));
-        if (item) startEdit(item);
-      });
-    });
-    wrap.querySelectorAll(".del-btn").forEach(btn => {
-      btn.addEventListener("click", () => deleteKonten(btn.dataset.id));
-    });
+    LAST_KONTEN_ITEMS = json.konten || [];
+    populateFilterTahunAdmin(LAST_KONTEN_ITEMS);
+    renderKontenTable();
   } catch (err) {
     wrap.innerHTML = `<p class="status-msg err">${err.message}</p>`;
   }
+}
+
+function populateFilterTahunAdmin(items) {
+  const select = document.getElementById("filter-tahun-admin");
+  const tahunList = [...new Set(items.map(i => String(i.Tahun || "").trim()).filter(Boolean))]
+    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+  const prevValue = select.value || "all";
+  select.innerHTML = `<option value="all">Semua Tahun</option>` +
+    tahunList.map(t => `<option value="${t}">${t}</option>`).join("");
+  if ([...select.options].some(o => o.value === prevValue)) {
+    select.value = prevValue;
+    ADMIN_FILTER_TAHUN = prevValue;
+  } else {
+    select.value = "all";
+    ADMIN_FILTER_TAHUN = "all";
+  }
+}
+
+function renderKontenTable() {
+  const wrap = document.getElementById("konten-table");
+  const items = ADMIN_FILTER_TAHUN === "all"
+    ? LAST_KONTEN_ITEMS
+    : LAST_KONTEN_ITEMS.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
+
+  if (items.length === 0) {
+    wrap.innerHTML = `<p style="color:var(--abu)">Belum ada karya.</p>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <div class="admin-grid">
+      ${items.map(i => `
+        <div class="admin-card">
+          <div class="admin-card-info">
+            <span class="admin-card-badge">${i.Kategori} · Seri ${i.Seri} · ${i.Tahun || "-"}</span>
+            <p class="admin-card-name">${i.Mahasiswa || "-"}</p>
+          </div>
+          <div class="admin-card-actions">
+            <button class="edit-btn" data-id="${i.ID}">Edit</button>
+            <button class="del-btn" data-id="${i.ID}">Hapus</button>
+          </div>
+        </div>`).join("")}
+    </div>
+  `;
+  wrap.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const item = LAST_KONTEN_ITEMS.find(i => String(i.ID) === String(btn.dataset.id));
+      if (item) startEdit(item);
+    });
+  });
+  wrap.querySelectorAll(".del-btn").forEach(btn => {
+    btn.addEventListener("click", () => deleteKonten(btn.dataset.id));
+  });
 }
 
 async function loadPegawaiTable() {

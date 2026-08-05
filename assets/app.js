@@ -10,7 +10,8 @@ const KATEGORI = [
 
 let STATE = {
   data: null,
-  activeKategori: KATEGORI[0].key
+  activeKategori: KATEGORI[0].key,
+  activeTahun: null // diisi otomatis dengan tahun terbaru dari database setelah data dimuat
 };
 
 function currentUser() {
@@ -149,6 +150,40 @@ function renderHeader() {
   }
 }
 
+// ====== FILTER TAHUN (di header, sejajar logo & login) ======
+function getAvailableYears() {
+  const items = (STATE.data && STATE.data.konten) || [];
+  const years = [...new Set(items.map(i => String(i.Tahun || "").trim()).filter(Boolean))];
+  years.sort((a, b) => b.localeCompare(a, undefined, { numeric: true })); // terbaru dulu
+  return years;
+}
+
+function renderYearFilter() {
+  const wrap = document.getElementById("header-year");
+  const years = getAvailableYears();
+
+  if (years.length === 0) {
+    wrap.innerHTML = "";
+    return;
+  }
+
+  // Set default: tahun terbaru dari database, kecuali user sudah pernah pilih tahun lain
+  if (!STATE.activeTahun || !years.includes(STATE.activeTahun)) {
+    STATE.activeTahun = years[0];
+  }
+
+  wrap.innerHTML = `
+    <select id="tahun-select" class="tahun-select">
+      ${years.map(y => `<option value="${y}" ${y === STATE.activeTahun ? "selected" : ""}>Tahun ${y}</option>`).join("")}
+    </select>
+  `;
+
+  document.getElementById("tahun-select").addEventListener("change", e => {
+    STATE.activeTahun = e.target.value;
+    renderMain();
+  });
+}
+
 function renderSidebar() {
   const sidebar = document.getElementById("sidebar");
   sidebar.innerHTML = `
@@ -177,6 +212,7 @@ async function loadData() {
     const json = await res.json();
     if (json.error) throw new Error(json.error);
     STATE.data = json;
+    renderYearFilter();
     renderMain();
   } catch (err) {
     document.getElementById("main").innerHTML = `
@@ -215,7 +251,10 @@ function isLikedByMe(karyaId) {
 function renderKatalog() {
   const main = document.getElementById("main");
   const kat = STATE.activeKategori;
-  const items = (STATE.data.konten || []).filter(k => k.Kategori === kat);
+  const tahun = STATE.activeTahun;
+  const items = (STATE.data.konten || []).filter(
+    k => k.Kategori === kat && (!tahun || String(k.Tahun || "").trim() === tahun)
+  );
 
   const seriList = [...new Set(items.map(i => i.Seri))].sort();
   const itemsBySeri = {};
@@ -240,11 +279,11 @@ function renderKatalog() {
         </div>
         ${seriList.length > 0 ? `<div class="top3-header" id="top3-header"></div>` : ""}
       </div>
-      <p class="section-sub">Klik salah satu karya untuk melihat tampilan penuh, like, dan berkomentar.</p>
+      <p class="section-sub">Klik salah satu karya untuk melihat tampilan penuh, like, dan berkomentar.${tahun ? ` <span style="color:var(--biru); font-weight:600;">Menampilkan tahun ${escapeHtml(tahun)}.</span>` : ""}</p>
     </div>
     ${
       items.length === 0
-        ? `<div class="empty-state">Belum ada karya ${kat} yang ditambahkan.</div>`
+        ? `<div class="empty-state">Belum ada karya ${kat} ${tahun ? `tahun ${escapeHtml(tahun)}` : ""} yang ditambahkan.</div>`
         : seriList
             .map(
               seri => `
@@ -334,7 +373,7 @@ function refreshTop3Header() {
   const activeTab = document.querySelector(".seri-tab.active");
   if (!box || !activeTab || !STATE.data) return;
   const seri = activeTab.dataset.seri;
-  const items = (STATE.data.konten || []).filter(k => k.Kategori === STATE.activeKategori && k.Seri === seri);
+  const items = (STATE.data.konten || []).filter(k => k.Kategori === STATE.activeKategori && k.Seri === seri && (!STATE.activeTahun || String(k.Tahun || "").trim() === STATE.activeTahun));
 
   box.style.transition = "opacity 0.18s ease";
   box.style.opacity = "0";
@@ -489,7 +528,7 @@ function openModal(id) {
       <div class="modal-header">
         <div>
           <h3>${namesDisplay(item.Mahasiswa)}</h3>
-          <p>${escapeHtml(item.Kategori)} · Seri ${escapeHtml(item.Seri)}</p>
+          <p>${escapeHtml(item.Kategori)} · Seri ${escapeHtml(item.Seri)}${item.Tahun ? ` · ${escapeHtml(item.Tahun)}` : ""}</p>
         </div>
         <button class="modal-close" id="modal-close">&times;</button>
       </div>
@@ -780,4 +819,3 @@ async function submitComment(item) {
     btn.disabled = false;
   }
 }
-
