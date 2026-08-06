@@ -695,35 +695,71 @@ function buildMonitorHtml(json, matches, label) {
   const belum = pegawaiList
     .filter(p => !likedNipSet.has(String(p.NIP)))
     .sort((a, b) => String(a.Nama).localeCompare(String(b.Nama)));
-
-  const belumCount = belum.length;
+  const sudah = pegawaiList
+    .filter(p => likedNipSet.has(String(p.NIP)))
+    .sort((a, b) => String(a.Nama).localeCompare(String(b.Nama)));
 
   const head = `
     <div class="monitor-head">
-      <h4 class="monitor-title">Belum Pernah Like</h4>
+      <h4 class="monitor-title">Monitoring Like</h4>
       <div class="monitor-summary">
         <span>${escHtml(label)}</span>
-        <span class="monitor-summary-count warn">${belumCount} belum like</span>
       </div>
     </div>`;
 
-  if (belum.length === 0) {
-    return `${head}<div class="monitor-empty-ok">🎉 Semua pegawai sudah like!</div>`;
-  }
+  const belumColumn = `
+    <div class="monitor-col">
+      <div class="monitor-col-head">
+        <span class="monitor-col-title warn">Belum Like</span>
+        <span class="monitor-summary-count warn">${belum.length}</span>
+      </div>
+      <div class="monitor-box">
+        ${
+          belum.length === 0
+            ? `<div class="monitor-empty-ok">🎉 Semua sudah like!</div>`
+            : `<div class="monitor-grid">
+                ${belum
+                  .map(
+                    p => `
+                  <div class="monitor-name-card">
+                    <p class="mn-name">${escHtml(p.Nama)}</p>
+                  </div>`
+                  )
+                  .join("")}
+              </div>`
+        }
+      </div>
+    </div>`;
+
+  const sudahColumn = `
+    <div class="monitor-col">
+      <div class="monitor-col-head">
+        <span class="monitor-col-title ok">Sudah Like</span>
+        <span class="monitor-summary-count ok">${sudah.length}</span>
+      </div>
+      <div class="monitor-box monitor-box-green">
+        ${
+          sudah.length === 0
+            ? `<div class="monitor-empty-ok monitor-empty-warn">Belum ada yang like.</div>`
+            : `<div class="monitor-grid">
+                ${sudah
+                  .map(
+                    p => `
+                  <div class="monitor-name-card monitor-name-card-green">
+                    <p class="mn-name">${escHtml(p.Nama)}</p>
+                  </div>`
+                  )
+                  .join("")}
+              </div>`
+        }
+      </div>
+    </div>`;
 
   return `
     ${head}
-    <div class="monitor-box">
-      <div class="monitor-grid">
-        ${belum
-          .map(
-            p => `
-          <div class="monitor-name-card">
-            <p class="mn-name">${escHtml(p.Nama)}</p>
-          </div>`
-          )
-          .join("")}
-      </div>
+    <div class="monitor-columns">
+      ${belumColumn}
+      ${sudahColumn}
     </div>
   `;
 }

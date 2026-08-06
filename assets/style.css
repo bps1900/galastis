@@ -1322,6 +1322,44 @@ th { color: var(--abu); font-weight: 600; font-size: 11px; text-transform: upper
   line-height: 1.3;
 }
 
+/* Layout 2 kolom: Belum Like (oren, kiri) & Sudah Like (hijau, kanan) */
+.monitor-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.monitor-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.monitor-col-title {
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.monitor-col-title.warn { color: var(--oren); }
+.monitor-col-title.ok { color: var(--hijau); }
+
+.monitor-box-green {
+  background: linear-gradient(150deg, var(--hijau-muda) 0%, var(--putih) 70%);
+  border: 1.5px solid #B7E4CB;
+}
+.monitor-name-card-green {
+  border: 1px solid #C7EAD7;
+}
+.monitor-empty-warn {
+  color: var(--abu);
+  background: var(--kertas);
+}
+
+@media (max-width: 720px) {
+  .monitor-columns { grid-template-columns: 1fr; }
+}
+
 /* Modal fullscreen untuk screenshot */
 .monitor-zoom-box {
   width: 96vw;
