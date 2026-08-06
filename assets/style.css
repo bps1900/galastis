@@ -357,6 +357,8 @@ html:has(.layout), body:has(.layout) {
   margin-bottom: 4px;
   flex-wrap: wrap;
   padding-right: 320px;
+  position: relative;
+  z-index: 2;
 }
 .section-title h2 {
   font-family: var(--font-display);
@@ -436,6 +438,10 @@ html:has(.layout), body:has(.layout) {
   border: 1px solid var(--garis);
   border-radius: 12px;
   padding: 10px 12px;
+  z-index: 1;
+  /* Panel ini cuma tampilan (tidak ada tombol di dalamnya), jadi klik harus
+     tembus ke elemen di belakangnya (misal tab Seri) kalau posisinya bersinggungan. */
+  pointer-events: none;
 }
 .top3-title {
   font-size: 10.5px;
