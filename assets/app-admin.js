@@ -696,14 +696,14 @@ function buildMonitorHtml(json, matches, label) {
     .filter(p => !likedNipSet.has(String(p.NIP)))
     .sort((a, b) => String(a.Nama).localeCompare(String(b.Nama)));
 
-  const sudahCount = pegawaiList.length - belum.length;
+  const belumCount = belum.length;
 
   const head = `
     <div class="monitor-head">
       <h4 class="monitor-title">Belum Pernah Like</h4>
       <div class="monitor-summary">
         <span>${escHtml(label)}</span>
-        <span class="monitor-summary-count">${sudahCount}/${pegawaiList.length} sudah like</span>
+        <span class="monitor-summary-count warn">${belumCount} belum like</span>
       </div>
     </div>`;
 
@@ -720,7 +720,6 @@ function buildMonitorHtml(json, matches, label) {
             p => `
           <div class="monitor-name-card">
             <p class="mn-name">${escHtml(p.Nama)}</p>
-            <p class="mn-nip">${escHtml(p.NIP)}</p>
           </div>`
           )
           .join("")}
