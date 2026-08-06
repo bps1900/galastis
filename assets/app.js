@@ -83,39 +83,41 @@ function setupLoginModal() {
     msg.textContent = "Memeriksa...";
     msg.className = "status-msg";
 
-    // Coba admin dulu
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "loginAdmin", secret: val })
-      });
-      const json = await res.json();
-      if (!json.error) {
-        sessionStorage.setItem("gamma_user", JSON.stringify({ role: "admin", secret: val }));
-        window.location.href = "admin.html";
-        return;
-      }
-    } catch (_) {}
+    // Coba admin & pegawai SEKALIGUS (paralel), bukan gantian, supaya lebih cepat.
+    // Google Apps Script kadang lambat (cold start), jadi kalau dua request dikirim
+    // berurutan, total waktu tunggu jadi dobel. Dengan paralel, waktu tunggu cuma
+    // sepanjang request yang paling lambat, bukan jumlah keduanya.
+    const adminPromise = fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "loginAdmin", secret: val })
+    }).then(res => res.json()).catch(() => ({ error: "network" }));
 
-    // Kalau bukan admin, coba NIP pegawai
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "loginPegawai", nip: val })
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+    const pegawaiPromise = fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "loginPegawai", nip: val })
+    }).then(res => res.json()).catch(() => ({ error: "network" }));
+
+    const [adminJson, pegawaiJson] = await Promise.all([adminPromise, pegawaiPromise]);
+
+    if (!adminJson.error) {
+      sessionStorage.setItem("gamma_user", JSON.stringify({ role: "admin", secret: val }));
+      window.location.href = "admin.html";
+      return;
+    }
+
+    if (!pegawaiJson.error) {
       sessionStorage.setItem("gamma_user", JSON.stringify({
-        role: "pegawai", nama: json.nama, nip: json.nip
+        role: "pegawai", nama: pegawaiJson.nama, nip: pegawaiJson.nip
       }));
       overlay.classList.remove("open");
       document.getElementById("login-input").value = "";
       renderHeader();
       renderMain();
-    } catch (err) {
-      msg.textContent = "NIP tidak ditemukan. Hubungi admin jika belum terdaftar.";
-      msg.className = "status-msg err";
+      return;
     }
+
+    msg.textContent = "NIP tidak ditemukan. Hubungi admin jika belum terdaftar.";
+    msg.className = "status-msg err";
   }
 
   document.getElementById("btn-login-unified").addEventListener("click", doUnifiedLogin);
