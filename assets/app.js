@@ -4,7 +4,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw4-Fi9SaSTB1Ain86-9xEG
 const KATEGORI = [
   { key: "Infografis", label: "Infografis", icon: iconChart() },
   { key: "Videografis", label: "Videografis", icon: iconPlay() },
-  { key: "Flyer", label: "Flyer", icon: iconFlyer() },
+  { key: "Leaflet", label: "Leaflet", icon: iconLeaflet() },
   { key: "Join Riset", label: "Join Riset", icon: iconDoc() }
 ];
 
@@ -28,7 +28,7 @@ function iconChart() {
 function iconPlay() {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>`;
 }
-function iconFlyer() {
+function iconLeaflet() {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>`;
 }
 function iconDoc() {
@@ -591,7 +591,7 @@ function openModal(id) {
   if (!item) return;
 
   const overlay = document.getElementById("modal-overlay");
-  const isImageKategori = item.Kategori === "Infografis" || item.Kategori === "Flyer";
+  const isImageKategori = item.Kategori === "Infografis" || item.Kategori === "Leaflet";
   const driveId = driveFileId(item.EmbedLink);
   const directImgUrl = isImageKategori ? highResImageUrl(item) : null;
   const fallbackThumbUrl = driveId ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w2000` : null;
