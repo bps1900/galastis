@@ -614,9 +614,11 @@ async function deleteKonten(id, btn) {
 }
 
 // ====== MONITORING LIKE ======
+// Cek: dari filter Tahun+Kategori+Seri yang aktif di panel Daftar Karya (bisa berisi
+// beberapa karya/mahasiswa berbeda), apakah tiap pegawai sudah like SALAH SATU karya
+// di kombinasi itu atau belum sama sekali.
 
 let MONITOR_MODE = false;
-let MONITOR_KARYA_ID = null;
 
 document.getElementById("btn-monitor-like").addEventListener("click", () => {
   MONITOR_MODE = !MONITOR_MODE;
@@ -629,7 +631,6 @@ document.getElementById("btn-monitor-like").addEventListener("click", () => {
     btn.textContent = "✕ Tutup Monitoring";
     title.textContent = "Monitoring Like Karya";
     filtersWrap.style.display = "flex";
-    MONITOR_KARYA_ID = null;
     renderMonitorResult();
   } else {
     btn.classList.remove("active-monitor");
@@ -657,34 +658,6 @@ function getMonitorMatches() {
   );
 }
 
-// Kalau di kombinasi Tahun+Kategori+Seri yang sama ada lebih dari 1 karya
-// (misal beda nama mahasiswa/kelompok), tampilkan dropdown tambahan untuk pilih karyanya.
-function populateMonitorKaryaSelect(matches) {
-  const wrap = document.getElementById("filter-karya-monitor-wrap");
-  const container = document.getElementById("filter-karya-monitor");
-
-  if (matches.length <= 1) {
-    wrap.style.display = "none";
-    MONITOR_KARYA_ID = matches[0] ? matches[0].ID : null;
-    return;
-  }
-
-  wrap.style.display = "flex";
-  const nameFor = m => m.Mahasiswa || "(tanpa nama)";
-  if (!MONITOR_KARYA_ID || !matches.some(m => String(m.ID) === String(MONITOR_KARYA_ID))) {
-    MONITOR_KARYA_ID = matches[0].ID;
-  }
-  const current = matches.find(m => String(m.ID) === String(MONITOR_KARYA_ID)) || matches[0];
-  const names = matches.map(nameFor);
-  buildDropdown(container, names, nameFor(current), (val) => {
-    const picked = matches.find(m => nameFor(m) === val);
-    if (picked) {
-      MONITOR_KARYA_ID = picked.ID;
-      renderMonitorResult();
-    }
-  }, "light", "");
-}
-
 async function loadMonitorData() {
   const res = await fetch(`${API_URL}?action=getData`);
   const json = await res.json();
@@ -696,14 +669,9 @@ async function renderMonitorResult() {
   if (!MONITOR_MODE) return;
   const wrap = document.getElementById("pegawai-table");
   const matches = getMonitorMatches();
-  populateMonitorKaryaSelect(matches);
 
   if (matches.length === 0) {
     wrap.innerHTML = `<p style="color:var(--abu); font-size:13px; padding:24px 6px; text-align:center;">Pilih Tahun, Kategori, dan Seri di panel Daftar Karya untuk melihat siapa saja yang belum like.</p>`;
-    return;
-  }
-  if (!MONITOR_KARYA_ID) {
-    wrap.innerHTML = `<p style="color:var(--abu); font-size:13px; padding:24px 6px; text-align:center;">Pilih karya untuk melihat monitoring like.</p>`;
     return;
   }
 
@@ -711,9 +679,10 @@ async function renderMonitorResult() {
   try {
     const json = await loadMonitorData();
     const pegawaiList = json.pegawai || [];
+    const matchIds = new Set(matches.map(m => String(m.ID)));
     const likedNipSet = new Set(
       (json.likes || [])
-        .filter(l => String(l.KaryaId) === String(MONITOR_KARYA_ID))
+        .filter(l => matchIds.has(String(l.KaryaId)))
         .map(l => String(l.NIP))
     );
 
@@ -729,34 +698,32 @@ async function renderMonitorResult() {
         return String(a.nama).localeCompare(String(b.nama));
       });
 
-    const item = LAST_KONTEN_ITEMS.find(i => String(i.ID) === String(MONITOR_KARYA_ID));
     const sudahCount = rows.filter(r => r.liked).length;
+    const label = `${ADMIN_FILTER_KATEGORI} · Seri ${ADMIN_FILTER_SERI} · ${ADMIN_FILTER_TAHUN}`;
 
     wrap.innerHTML = `
       <div class="monitor-summary">
-        <span>${escHtml(item ? item.Mahasiswa || "-" : "-")}</span>
+        <span>${escHtml(label)}</span>
         <span class="monitor-summary-count">${sudahCount}/${rows.length} sudah like</span>
       </div>
-      <div class="monitor-list">
-        ${rows
-          .map(
-            r => `
-          <div class="monitor-row ${r.liked ? "liked" : "pending"}">
-            <span class="monitor-status">
-              ${
-                r.liked
-                  ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`
-                  : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 8v5M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>`
-              }
-            </span>
-            <div class="monitor-info">
-              <p class="monitor-nama">${escHtml(r.nama)}</p>
-              <span class="monitor-nip">${escHtml(r.nip)}</span>
-            </div>
-            <span class="monitor-badge">${r.liked ? "Sudah Like" : "Belum Like"}</span>
-          </div>`
-          )
-          .join("")}
+      <div class="monitor-table-wrap">
+        <table class="monitor-table">
+          <thead>
+            <tr><th>Pegawai</th><th>NIP</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            ${rows
+              .map(
+                r => `
+              <tr class="${r.liked ? "liked" : "pending"}">
+                <td>${escHtml(r.nama)}</td>
+                <td class="monitor-nip-cell">${escHtml(r.nip)}</td>
+                <td><span class="monitor-badge">${r.liked ? "✓ Sudah Like" : "Belum Like"}</span></td>
+              </tr>`
+              )
+              .join("")}
+          </tbody>
+        </table>
       </div>
     `;
   } catch (err) {

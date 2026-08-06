@@ -488,7 +488,7 @@ function top3PanelInner(seriItems) {
     return `
       <div class="top3-slot">
         <span class="top3-badge ${medalClasses[i]}">${iconLike(true)}</span>
-        <p class="top3-name" title="${escapeHtml(namesDisplay(r.item.Mahasiswa))}">${namesDisplay(r.item.Mahasiswa)}</p>
+        <p class="top3-name" title="${escapeHtml(splitNames(r.item.Mahasiswa).join(", "))}">${displayMahasiswa(r.item)}</p>
         <p class="top3-count">${r.likes} suka</p>
       </div>`;
   });
@@ -516,7 +516,7 @@ function cardHtml(item) {
     <div class="card" data-id="${item.ID}">
       <div class="card-thumb">${thumb}</div>
       <div class="card-body">
-        <p class="card-title">${namesDisplay(item.Mahasiswa)}</p>
+        <p class="card-title">${displayMahasiswa(item)}</p>
         <div class="card-stats">
           <span>${iconLike(false)} ${likes}</span>
           <span>${iconComment()} ${comments}</span>
@@ -567,6 +567,21 @@ function namesDisplay(str) {
   return names.map(escapeHtml).join(", ");
 }
 
+// Untuk kategori Videografis & Join Riset, admin biasanya cuma isi nomor kelompok
+// (misal "1", "2") — di galeri otomatis ditampilkan jadi "Kelompok 1", "Kelompok 2", dst.
+// Kategori lain (Infografis, Leaflet) ditampilkan apa adanya (nama mahasiswa).
+function displayMahasiswa(item) {
+  const isKelompokKategori = item.Kategori === "Videografis" || item.Kategori === "Join Riset";
+  if (!isKelompokKategori) return namesDisplay(item.Mahasiswa);
+
+  const names = splitNames(item.Mahasiswa);
+  if (names.length === 0) return "";
+  return names
+    .map(n => (/^\d+$/.test(n.trim()) ? `Kelompok ${n.trim()}` : n))
+    .map(escapeHtml)
+    .join(", ");
+}
+
 function escapeHtml(str) {
   return String(str || "").replace(/[&<>"']/g, s => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -611,7 +626,7 @@ function openModal(id) {
     <div class="modal-box modal-box-split">
       <div class="modal-header">
         <div>
-          <h3>${namesDisplay(item.Mahasiswa)}</h3>
+          <h3>${displayMahasiswa(item)}</h3>
           <p>${escapeHtml(item.Kategori)} · Seri ${escapeHtml(item.Seri)}${item.Tahun ? ` · ${escapeHtml(item.Tahun)}` : ""}</p>
         </div>
         <button class="modal-close" id="modal-close">&times;</button>
