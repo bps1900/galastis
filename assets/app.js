@@ -357,7 +357,23 @@ function renderKatalog() {
     STATE.activeSeri = String(STATE.activeSeri);
   }
   const activeSeri = STATE.activeSeri;
-  const activeItems = activeSeri ? (itemsBySeri[activeSeri] || []) : [];
+  let activeItems = activeSeri ? (itemsBySeri[activeSeri] || []) : [];
+
+  // Untuk Videografis & Join Riset, urutkan berdasarkan nomor kelompok (menaik).
+  // Kalau nama bukan angka murni (misal nama orang), taruh di akhir, urut alfabet.
+  const isKelompokKategori = kat === "Videografis" || kat === "Join Riset";
+  if (isKelompokKategori) {
+    activeItems = [...activeItems].sort((a, b) => {
+      const na = String(a.Mahasiswa || "").trim();
+      const nb = String(b.Mahasiswa || "").trim();
+      const isNumA = /^\d+$/.test(na);
+      const isNumB = /^\d+$/.test(nb);
+      if (isNumA && isNumB) return parseInt(na, 10) - parseInt(nb, 10);
+      if (isNumA) return -1;
+      if (isNumB) return 1;
+      return na.localeCompare(nb, undefined, { numeric: true });
+    });
+  }
 
   main.innerHTML = `
     <div class="katalog-header">
