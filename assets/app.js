@@ -74,14 +74,22 @@ function setupLoginModal() {
 
   async function doUnifiedLogin() {
     const msg = document.getElementById("login-msg");
-    const val = document.getElementById("login-input").value.trim();
+    const btn = document.getElementById("btn-login-unified");
+    const input = document.getElementById("login-input");
+    const val = input.value.trim();
     if (!val) {
       msg.textContent = "Masukkan NIP atau password admin.";
       msg.className = "status-msg err";
       return;
     }
-    msg.textContent = "Memeriksa...";
+    msg.textContent = "";
     msg.className = "status-msg";
+
+    // Tampilkan animasi loading di tombol & kunci input selama proses login
+    const originalBtnHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="like-spinner"></span> Memeriksa...`;
+    input.disabled = true;
 
     // Coba admin & pegawai SEKALIGUS (paralel), bukan gantian, supaya lebih cepat.
     // Google Apps Script kadang lambat (cold start), jadi kalau dua request dikirim
@@ -110,12 +118,20 @@ function setupLoginModal() {
         role: "pegawai", nama: pegawaiJson.nama, nip: pegawaiJson.nip
       }));
       overlay.classList.remove("open");
-      document.getElementById("login-input").value = "";
+      input.value = "";
       renderHeader();
       renderMain();
+      // Reset tombol (jaga-jaga kalau modal dibuka lagi tanpa reload halaman)
+      btn.disabled = false;
+      btn.innerHTML = originalBtnHtml;
+      input.disabled = false;
       return;
     }
 
+    // Gagal keduanya: kembalikan tombol & input ke kondisi semula, tampilkan pesan error
+    btn.disabled = false;
+    btn.innerHTML = originalBtnHtml;
+    input.disabled = false;
     msg.textContent = "NIP tidak ditemukan. Hubungi admin jika belum terdaftar.";
     msg.className = "status-msg err";
   }
@@ -888,9 +904,12 @@ async function submitComment(item) {
   }
 
   const btn = document.getElementById("btn-comment");
+  const originalBtnHtml = btn.innerHTML;
   btn.disabled = true;
-  msg.textContent = "Mengirim...";
+  btn.innerHTML = `<span class="like-spinner"></span> Mengirim...`;
+  msg.textContent = "";
   msg.className = "status-msg";
+  textarea.disabled = true;
 
   try {
     const res = await fetch(API_URL, {
@@ -919,9 +938,11 @@ async function submitComment(item) {
     openModal(item.ID); // re-render dengan komentar terbaru
     renderKatalog(); // sinkronkan jumlah komentar di kartu galeri belakang layar
   } catch (err) {
+    // Kembalikan tombol & textarea ke kondisi semula supaya user bisa coba lagi
+    btn.disabled = false;
+    btn.innerHTML = originalBtnHtml;
+    textarea.disabled = false;
     msg.textContent = err.message;
     msg.className = "status-msg err";
-  } finally {
-    btn.disabled = false;
   }
 }

@@ -2,14 +2,22 @@ const API_URL = "https://script.google.com/macros/s/AKfycbw4-Fi9SaSTB1Ain86-9xEG
 
 async function doLogin() {
   const msg = document.getElementById("login-msg");
-  const val = document.getElementById("login-input").value.trim();
+  const btn = document.getElementById("btn-login-unified");
+  const input = document.getElementById("login-input");
+  const val = input.value.trim();
   if (!val) {
     msg.textContent = "Masukkan NIP Anda.";
     msg.className = "status-msg err";
     return;
   }
-  msg.textContent = "Memeriksa...";
+  msg.textContent = "";
   msg.className = "status-msg";
+
+  // Tampilkan animasi loading di tombol & kunci input selama proses login
+  const originalBtnHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="like-spinner"></span> Memeriksa...`;
+  input.disabled = true;
 
   // Coba admin & pegawai SEKALIGUS (paralel), bukan gantian, supaya lebih cepat.
   const adminPromise = fetch(API_URL, {
@@ -38,6 +46,10 @@ async function doLogin() {
     return;
   }
 
+  // Gagal keduanya: kembalikan tombol & input ke kondisi semula, tampilkan pesan error
+  btn.disabled = false;
+  btn.innerHTML = originalBtnHtml;
+  input.disabled = false;
   msg.textContent = "NIP tidak ditemukan. Hubungi admin jika belum terdaftar.";
   msg.className = "status-msg err";
 }
