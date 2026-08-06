@@ -4,8 +4,6 @@ let ADMIN_SECRET_INPUT = "";
 let editingId = null; // null = mode tambah, ada id = mode edit
 let LAST_KONTEN_ITEMS = [];
 let ADMIN_FILTER_TAHUN = "all";
-let ADMIN_FILTER_KATEGORI = "Semua Kategori";
-let ADMIN_FILTER_SERI = "Semua Seri";
 let SELECTED_IDS = new Set();
 
 document.addEventListener("DOMContentLoaded", init);
@@ -111,6 +109,16 @@ const karyaOverlay = document.getElementById("karya-modal-overlay");
 
 document.getElementById("btn-open-add").addEventListener("click", () => {
   resetForm();
+  // Pre-fill form dengan nilai filter yang sedang aktif
+  if (ADMIN_FILTER_TAHUN && ADMIN_FILTER_TAHUN !== "Semua Tahun") {
+    document.getElementById("f-tahun").value = ADMIN_FILTER_TAHUN;
+  }
+  if (ADMIN_FILTER_KATEGORI && ADMIN_FILTER_KATEGORI !== "Semua Kategori") {
+    document.getElementById("f-kategori").value = ADMIN_FILTER_KATEGORI;
+  }
+  if (ADMIN_FILTER_SERI && ADMIN_FILTER_SERI !== "Semua Seri") {
+    document.getElementById("f-seri").value = ADMIN_FILTER_SERI;
+  }
   openKaryaModal();
 });
 
@@ -332,7 +340,7 @@ async function loadKontenTable() {
     const json = await res.json();
     if (json.error) throw new Error(json.error);
     LAST_KONTEN_ITEMS = dedupeKontenKeepLast(json.konten || []);
-    populateAllFilters();
+    populateFilterTahunAdmin(LAST_KONTEN_ITEMS);
     renderKontenTable();
   } catch (err) {
     wrap.innerHTML = `<p class="status-msg err">${err.message}</p>`;
@@ -349,7 +357,7 @@ async function fadeReloadKontenTable() {
     const json = await res.json();
     if (json.error) throw new Error(json.error);
     LAST_KONTEN_ITEMS = dedupeKontenKeepLast(json.konten || []);
-    populateAllFilters();
+    populateFilterTahunAdmin(LAST_KONTEN_ITEMS);
     renderKontenTable();
   } catch (err) {
     wrap.innerHTML = `<p class="status-msg err">${err.message}</p>`;
@@ -357,82 +365,28 @@ async function fadeReloadKontenTable() {
   wrap.classList.remove("fade-out");
 }
 
-function populateAllFilters() {
-  populateFilterTahunAdmin(LAST_KONTEN_ITEMS);
-  populateFilterKategoriAdmin(LAST_KONTEN_ITEMS);
-  populateFilterSeriAdmin(LAST_KONTEN_ITEMS);
-}
-
 function populateFilterTahunAdmin(items) {
   const container = document.getElementById("filter-tahun-admin");
   const tahunList = [...new Set(items.map(i => String(i.Tahun || "").trim()).filter(Boolean))]
     .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
   const options = ["Semua Tahun", ...tahunList];
-  if (!options.includes(ADMIN_FILTER_TAHUN)) ADMIN_FILTER_TAHUN = "Semua Tahun";
+
+  if (!options.includes(ADMIN_FILTER_TAHUN)) {
+    ADMIN_FILTER_TAHUN = "Semua Tahun";
+  }
+
   buildDropdown(container, options, ADMIN_FILTER_TAHUN, (val) => {
     ADMIN_FILTER_TAHUN = val;
-    // Reset kategori & seri saat tahun berubah
-    ADMIN_FILTER_KATEGORI = "Semua Kategori";
-    ADMIN_FILTER_SERI = "Semua Seri";
-    populateAllFilters();
+    populateFilterTahunAdmin(LAST_KONTEN_ITEMS);
     renderKontenTable();
   }, "light", "");
-}
-
-function populateFilterKategoriAdmin(items) {
-  const container = document.getElementById("filter-kategori-admin");
-  // Filter items sesuai tahun aktif dulu baru ambil kategori yang tersedia
-  const filtered = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
-    ? items : items.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
-  const KATEGORI_ORDER = ["Infografis", "Videografis", "Leaflet", "Join Riset"];
-  const available = KATEGORI_ORDER.filter(k => filtered.some(i => i.Kategori === k));
-  const options = ["Semua Kategori", ...available];
-  if (!options.includes(ADMIN_FILTER_KATEGORI)) ADMIN_FILTER_KATEGORI = "Semua Kategori";
-  buildDropdown(container, options, ADMIN_FILTER_KATEGORI, (val) => {
-    ADMIN_FILTER_KATEGORI = val;
-    // Reset seri saat kategori berubah
-    ADMIN_FILTER_SERI = "Semua Seri";
-    populateFilterSeriAdmin(LAST_KONTEN_ITEMS);
-    renderKontenTable();
-  }, "light", "");
-}
-
-function populateFilterSeriAdmin(items) {
-  const container = document.getElementById("filter-seri-admin");
-  // Filter sesuai tahun + kategori aktif dulu baru ambil seri yang tersedia
-  let filtered = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
-    ? items : items.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
-  if (ADMIN_FILTER_KATEGORI && ADMIN_FILTER_KATEGORI !== "Semua Kategori") {
-    filtered = filtered.filter(i => i.Kategori === ADMIN_FILTER_KATEGORI);
-  }
-  const seriList = [...new Set(filtered.map(i => String(i.Seri || "").trim()).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-  const options = ["Semua Seri", ...seriList];
-  if (!options.includes(ADMIN_FILTER_SERI)) ADMIN_FILTER_SERI = "Semua Seri";
-  buildDropdown(container, options, ADMIN_FILTER_SERI, (val) => {
-    ADMIN_FILTER_SERI = val;
-    populateFilterSeriAdmin(LAST_KONTEN_ITEMS);
-    renderKontenTable();
-  }, "light", "");
-}
-
-// Helper: ambil items setelah semua filter diterapkan
-function getFilteredItems() {
-  let items = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
-    ? LAST_KONTEN_ITEMS
-    : LAST_KONTEN_ITEMS.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
-  if (ADMIN_FILTER_KATEGORI && ADMIN_FILTER_KATEGORI !== "Semua Kategori") {
-    items = items.filter(i => i.Kategori === ADMIN_FILTER_KATEGORI);
-  }
-  if (ADMIN_FILTER_SERI && ADMIN_FILTER_SERI !== "Semua Seri") {
-    items = items.filter(i => String(i.Seri || "").trim() === ADMIN_FILTER_SERI);
-  }
-  return items;
 }
 
 function renderKontenTable() {
   const wrap = document.getElementById("konten-table");
-  const items = getFilteredItems();
+  const items = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
+    ? LAST_KONTEN_ITEMS
+    : LAST_KONTEN_ITEMS.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
 
   // Buang id terpilih yang sudah tidak ada lagi di data (misal terhapus dari sisi lain)
   const allIds = new Set(LAST_KONTEN_ITEMS.map(i => String(i.ID)));
@@ -497,7 +451,9 @@ function updateBulkUI(visibleItems) {
 }
 
 document.getElementById("chk-select-all").addEventListener("change", (e) => {
-  const items = getFilteredItems();
+  const items = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
+    ? LAST_KONTEN_ITEMS
+    : LAST_KONTEN_ITEMS.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
   if (e.target.checked) {
     items.forEach(i => SELECTED_IDS.add(String(i.ID)));
   } else {
