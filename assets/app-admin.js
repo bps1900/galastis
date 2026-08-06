@@ -4,6 +4,7 @@ let ADMIN_SECRET_INPUT = "";
 let editingId = null; // null = mode tambah, ada id = mode edit
 let LAST_KONTEN_ITEMS = [];
 let ADMIN_FILTER_TAHUN = "all";
+let ADMIN_FILTER_KATEGORI = "Semua Kategori";
 let SELECTED_IDS = new Set();
 
 document.addEventListener("DOMContentLoaded", init);
@@ -331,6 +332,7 @@ async function loadKontenTable() {
     if (json.error) throw new Error(json.error);
     LAST_KONTEN_ITEMS = dedupeKontenKeepLast(json.konten || []);
     populateFilterTahunAdmin(LAST_KONTEN_ITEMS);
+    populateFilterKategoriAdmin(LAST_KONTEN_ITEMS);
     renderKontenTable();
   } catch (err) {
     wrap.innerHTML = `<p class="status-msg err">${err.message}</p>`;
@@ -348,6 +350,7 @@ async function fadeReloadKontenTable() {
     if (json.error) throw new Error(json.error);
     LAST_KONTEN_ITEMS = dedupeKontenKeepLast(json.konten || []);
     populateFilterTahunAdmin(LAST_KONTEN_ITEMS);
+    populateFilterKategoriAdmin(LAST_KONTEN_ITEMS);
     renderKontenTable();
   } catch (err) {
     wrap.innerHTML = `<p class="status-msg err">${err.message}</p>`;
@@ -372,11 +375,31 @@ function populateFilterTahunAdmin(items) {
   }, "light", "");
 }
 
+function populateFilterKategoriAdmin(items) {
+  const container = document.getElementById("filter-kategori-admin");
+  const KATEGORI_ORDER = ["Infografis", "Videografis", "Leaflet", "Join Riset"];
+  const available = KATEGORI_ORDER.filter(k => items.some(i => i.Kategori === k));
+  const options = ["Semua Kategori", ...available];
+
+  if (!options.includes(ADMIN_FILTER_KATEGORI)) {
+    ADMIN_FILTER_KATEGORI = "Semua Kategori";
+  }
+
+  buildDropdown(container, options, ADMIN_FILTER_KATEGORI, (val) => {
+    ADMIN_FILTER_KATEGORI = val;
+    populateFilterKategoriAdmin(LAST_KONTEN_ITEMS);
+    renderKontenTable();
+  }, "light", "");
+}
+
 function renderKontenTable() {
   const wrap = document.getElementById("konten-table");
-  const items = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
+  let items = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
     ? LAST_KONTEN_ITEMS
     : LAST_KONTEN_ITEMS.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
+  if (ADMIN_FILTER_KATEGORI && ADMIN_FILTER_KATEGORI !== "Semua Kategori") {
+    items = items.filter(i => i.Kategori === ADMIN_FILTER_KATEGORI);
+  }
 
   // Buang id terpilih yang sudah tidak ada lagi di data (misal terhapus dari sisi lain)
   const allIds = new Set(LAST_KONTEN_ITEMS.map(i => String(i.ID)));
@@ -441,9 +464,12 @@ function updateBulkUI(visibleItems) {
 }
 
 document.getElementById("chk-select-all").addEventListener("change", (e) => {
-  const items = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
+  let items = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
     ? LAST_KONTEN_ITEMS
     : LAST_KONTEN_ITEMS.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
+  if (ADMIN_FILTER_KATEGORI && ADMIN_FILTER_KATEGORI !== "Semua Kategori") {
+    items = items.filter(i => i.Kategori === ADMIN_FILTER_KATEGORI);
+  }
   if (e.target.checked) {
     items.forEach(i => SELECTED_IDS.add(String(i.ID)));
   } else {
