@@ -342,14 +342,19 @@ function renderKatalog() {
   );
   items = dedupeKontenKeepLast(items);
 
-  const seriList = [...new Set(items.map(i => i.Seri))].sort();
+  const seriList = [...new Set(items.map(i => String(i.Seri || "").trim()))].sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true })
+  );
   const itemsBySeri = {};
-  seriList.forEach(seri => { itemsBySeri[seri] = items.filter(i => i.Seri === seri); });
+  seriList.forEach(seri => { itemsBySeri[seri] = items.filter(i => String(i.Seri || "").trim() === seri); });
 
   // Seri yang sedang aktif/ditampilkan. Pertahankan pilihan sebelumnya kalau masih
   // relevan (masih ada di kategori/tahun ini), kalau tidak jatuhkan ke seri pertama.
-  if (!STATE.activeSeri || !seriList.includes(STATE.activeSeri)) {
+  // (activeSeri selalu disimpan sebagai string, karena berasal dari data-seri di HTML.)
+  if (!STATE.activeSeri || !seriList.includes(String(STATE.activeSeri))) {
     STATE.activeSeri = seriList[0] || null;
+  } else {
+    STATE.activeSeri = String(STATE.activeSeri);
   }
   const activeSeri = STATE.activeSeri;
   const activeItems = activeSeri ? (itemsBySeri[activeSeri] || []) : [];
@@ -364,7 +369,7 @@ function renderKatalog() {
               ? `<div class="seri-tabs">
                   ${seriList
                     .map(
-                      seri => `<button class="seri-tab ${seri === activeSeri ? "active" : ""}" data-seri="${escapeHtml(seri)}">Seri ${escapeHtml(seri)}</button>`
+                      seri => `<button class="seri-tab ${seri === String(activeSeri) ? "active" : ""}" data-seri="${escapeHtml(seri)}">Seri ${escapeHtml(seri)}</button>`
                     )
                     .join("")}
                 </div>`
@@ -433,7 +438,7 @@ function refreshTop3Header() {
   const activeTab = document.querySelector(".seri-tab.active");
   if (!box || !activeTab || !STATE.data) return;
   const seri = activeTab.dataset.seri;
-  const items = (STATE.data.konten || []).filter(k => k.Kategori === STATE.activeKategori && k.Seri === seri && (!STATE.activeTahun || String(k.Tahun || "").trim() === STATE.activeTahun));
+  const items = (STATE.data.konten || []).filter(k => k.Kategori === STATE.activeKategori && String(k.Seri || "").trim() === seri && (!STATE.activeTahun || String(k.Tahun || "").trim() === STATE.activeTahun));
 
   box.style.transition = "opacity 0.18s ease";
   box.style.opacity = "0";
