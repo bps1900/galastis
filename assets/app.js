@@ -540,7 +540,14 @@ function driveFileId(link) {
 
 // Kalau Thumbnail kosong, coba generate otomatis dari link Drive
 function resolveThumbnail(item) {
-  if (item.Thumbnail) return item.Thumbnail;
+  if (item.Thumbnail) {
+    // Kalau kolom Thumbnail diisi link Google Drive (termasuk link PDF/PPT),
+    // konversi ke thumbnail generator Drive supaya otomatis ambil halaman 1-nya.
+    const thumbId = driveFileId(item.Thumbnail);
+    if (thumbId) return `https://drive.google.com/thumbnail?id=${thumbId}&sz=w1600`;
+    // Kalau bukan link Drive (misal URL gambar langsung dari sumber lain), pakai apa adanya.
+    return item.Thumbnail;
+  }
   const id = driveFileId(item.EmbedLink);
   if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w1600`;
   return null;
