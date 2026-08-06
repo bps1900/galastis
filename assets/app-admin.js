@@ -701,7 +701,6 @@ function buildMonitorHtml(json, matches, label) {
 
   const head = `
     <div class="monitor-head">
-      <h4 class="monitor-title">Monitoring Like</h4>
       <div class="monitor-summary">
         <span>${escHtml(label)}</span>
       </div>
