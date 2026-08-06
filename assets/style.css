@@ -793,6 +793,31 @@ html:has(.layout), body:has(.layout) {
 .comment-item .c-time { font-size: 11px; color: var(--abu); }
 .comment-item .c-text { font-size: 13.5px; line-height: 1.45; margin: 0; white-space: pre-wrap; }
 .comment-empty { color: var(--abu); font-size: 13px; padding: 6px 0; }
+.c-actions { display: flex; gap: 6px; margin-top: 6px; }
+.c-edit-btn, .c-del-btn {
+  border: none;
+  background: var(--biru-muda);
+  color: var(--biru-tua);
+  border-radius: 6px;
+  padding: 4px 9px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+.c-del-btn { background: var(--oren-muda); color: var(--oren); }
+.c-edit-wrap { display: flex; flex-direction: column; gap: 6px; }
+.c-edit-textarea {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--garis);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  background: var(--putih);
+  box-sizing: border-box;
+}
 
 .login-required {
   font-size: 12.5px;

@@ -14,6 +14,34 @@ let STATE = {
   activeTahun: null // diisi otomatis dengan tahun terbaru dari database setelah data dimuat
 };
 
+// Google Apps Script Web App punya batas eksekusi paralel — kalau banyak orang
+// (misal 50+) like/komentar hampir bersamaan, sebagian request bisa kena error
+// sesaat ("Server sedang sibuk..." dari LockService, atau timeout jaringan).
+// Helper ini otomatis coba ulang beberapa kali dengan jeda singkat sebelum
+// benar-benar dianggap gagal, supaya aksi like/komentar terasa lebih andal.
+async function postApiRetry(payload, retries = 2) {
+  let lastErr = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+      const json = await res.json();
+      // "Server sibuk" dari LockService layak dicoba ulang; error lain (misal validasi) tidak perlu.
+      if (json.error && /sibuk/i.test(json.error) && attempt < retries) {
+        await new Promise(r => setTimeout(r, 500 + attempt * 500));
+        continue;
+      }
+      return json;
+    } catch (err) {
+      lastErr = err;
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 500 + attempt * 500));
+        continue;
+      }
+    }
+  }
+  return { error: lastErr ? "Koneksi bermasalah, coba lagi." : "Gagal memproses, coba lagi." };
+}
+
 function currentUser() {
   const raw = sessionStorage.getItem("gamma_user");
   if (!raw) return null;
@@ -290,10 +318,7 @@ function renderSidebar() {
 async function loadData() {
   renderLoading();
   try {
-    const res = await fetch(`${API_URL}?action=getData`);
-    const json = await res.json();
-    if (json.error) throw new Error(json.error);
-    STATE.data = json;
+    STATE.data = await getDataRetry();
     renderYearFilter();
     renderMain();
   } catch (err) {
@@ -303,6 +328,24 @@ async function loadData() {
         <small>${err.message}</small>
       </div>`;
   }
+}
+
+// Ambil data galeri dengan percobaan ulang otomatis — penting saat banyak orang
+// buka halaman bersamaan dan sesekali request gagal karena server lagi ramai.
+async function getDataRetry(retries = 2) {
+  let lastErr = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(`${API_URL}?action=getData`);
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      return json;
+    } catch (err) {
+      lastErr = err;
+      if (attempt < retries) await new Promise(r => setTimeout(r, 500 + attempt * 500));
+    }
+  }
+  throw lastErr || new Error("Gagal memuat data.");
 }
 
 function renderLoading() {
@@ -684,18 +727,7 @@ function openModal(id) {
               ${
                 comments.length === 0
                   ? `<p class="comment-empty">Belum ada komentar.</p>`
-                  : comments
-                      .map(
-                        c => `
-                  <div class="comment-item">
-                    <div class="c-head">
-                      <span class="c-name">${escapeHtml(c.Nama)}</span>
-                      <span class="c-time">${timeAgo(c.Waktu)}</span>
-                    </div>
-                    <p class="c-text">${escapeHtml(c.Text)}</p>
-                  </div>`
-                      )
-                      .join("")
+                  : comments.map(c => commentItemHtml(c, user)).join("")
               }
             </div>
             <p class="status-msg" id="comment-msg"></p>
@@ -725,6 +757,103 @@ function openModal(id) {
   document.getElementById("btn-like").addEventListener("click", () => toggleLike(item));
   const btnComment = document.getElementById("btn-comment");
   if (btnComment) btnComment.addEventListener("click", () => submitComment(item));
+
+  // Event delegation untuk tombol Edit/Hapus di tiap komentar (dipasang sekali di
+  // wrapper, jadi tetap jalan walau daftar komentar dirender ulang)
+  const commentList = document.getElementById("comment-list");
+  if (commentList) {
+    commentList.addEventListener("click", e => {
+      const editBtn = e.target.closest(".c-edit-btn");
+      const delBtn = e.target.closest(".c-del-btn");
+      const saveBtn = e.target.closest(".c-save-btn");
+      const cancelBtn = e.target.closest(".c-cancel-btn");
+      if (editBtn) startEditComment(editBtn.dataset.id);
+      if (delBtn) deleteCommentAction(item, delBtn.dataset.id);
+      if (saveBtn) saveEditComment(item, saveBtn.dataset.id);
+      if (cancelBtn) openModal(item.ID); // batal edit -> render ulang seperti semula
+    });
+  }
+}
+
+// Komentar ditampilkan pakai 💬 saja (bukan nama asli) supaya identitas siapa
+// komentar apa tetap privat/bebas — kecuali untuk komentar milik sendiri, ditandai "(Anda)"
+// dan dikasih tombol Edit/Hapus.
+function commentItemHtml(c, user) {
+  const mine = !!(user && String(c.NIP) === String(user.nip));
+  return `
+    <div class="comment-item" data-comment-id="${c.ID}">
+      <div class="c-head">
+        <span class="c-name">💬 ${mine ? "Anda" : "Pegawai"}</span>
+        <span class="c-time">${timeAgo(c.Waktu)}</span>
+      </div>
+      <p class="c-text" id="c-text-${c.ID}">${escapeHtml(c.Text)}</p>
+      ${
+        mine
+          ? `<div class="c-actions">
+              <button class="c-edit-btn" data-id="${c.ID}">Edit</button>
+              <button class="c-del-btn" data-id="${c.ID}">Hapus</button>
+            </div>`
+          : ""
+      }
+    </div>`;
+}
+
+function startEditComment(commentId) {
+  const textEl = document.getElementById(`c-text-${commentId}`);
+  if (!textEl || textEl.dataset.editing === "1") return;
+  const original = textEl.textContent;
+  textEl.dataset.editing = "1";
+  textEl.outerHTML = `
+    <div class="c-edit-wrap" id="c-text-${commentId}">
+      <textarea class="c-edit-textarea" id="c-edit-input-${commentId}">${escapeHtml(original)}</textarea>
+      <div class="c-actions">
+        <button class="btn btn-primary c-save-btn" data-id="${commentId}" style="padding:6px 12px; font-size:12px;">Simpan</button>
+        <button class="btn btn-outline c-cancel-btn" data-id="${commentId}" style="padding:6px 12px; font-size:12px;">Batal</button>
+      </div>
+    </div>`;
+  document.getElementById(`c-edit-input-${commentId}`)?.focus();
+}
+
+async function saveEditComment(item, commentId) {
+  const user = currentUser();
+  if (!user) return;
+  const input = document.getElementById(`c-edit-input-${commentId}`);
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) {
+    alert("Komentar tidak boleh kosong.");
+    return;
+  }
+  const saveBtn = document.querySelector(`.c-save-btn[data-id="${commentId}"]`);
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Menyimpan..."; }
+  try {
+    const json = await postApiRetry({ action: "updateComment", id: commentId, nip: user.nip, text });
+    if (json.error) throw new Error(json.error);
+    const c = (STATE.data.comments || []).find(cm => String(cm.ID) === String(commentId));
+    if (c) c.Text = text;
+    openModal(item.ID);
+  } catch (err) {
+    alert(err.message);
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Simpan"; }
+  }
+}
+
+async function deleteCommentAction(item, commentId) {
+  const user = currentUser();
+  if (!user) return;
+  if (!confirm("Hapus komentar ini?")) return;
+  const delBtn = document.querySelector(`.c-del-btn[data-id="${commentId}"]`);
+  if (delBtn) { delBtn.disabled = true; delBtn.textContent = "Menghapus..."; }
+  try {
+    const json = await postApiRetry({ action: "deleteComment", id: commentId, nip: user.nip });
+    if (json.error) throw new Error(json.error);
+    STATE.data.comments = (STATE.data.comments || []).filter(cm => String(cm.ID) !== String(commentId));
+    openModal(item.ID);
+    renderKatalog();
+  } catch (err) {
+    alert(err.message);
+    if (delBtn) { delBtn.disabled = false; delBtn.textContent = "Hapus"; }
+  }
 }
 
 function closeModal() {
@@ -852,16 +981,12 @@ async function toggleLike(item) {
   btn.innerHTML = `<span class="like-spinner"></span> <span id="like-label">${wasLiked ? "Disukai" : "Suka"}</span>`;
 
   try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "toggleLike",
-        karyaId: item.ID,
-        nip: user.nip,
-        nama: user.nama
-      })
+    const json = await postApiRetry({
+      action: "toggleLike",
+      karyaId: item.ID,
+      nip: user.nip,
+      nama: user.nama
     });
-    const json = await res.json();
     if (json.error) throw new Error(json.error);
 
     // Perbarui state lokal
@@ -912,17 +1037,13 @@ async function submitComment(item) {
   textarea.disabled = true;
 
   try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "addComment",
-        karyaId: item.ID,
-        nip: user.nip,
-        nama: user.nama,
-        text
-      })
+    const json = await postApiRetry({
+      action: "addComment",
+      karyaId: item.ID,
+      nip: user.nip,
+      nama: user.nama,
+      text
     });
-    const json = await res.json();
     if (json.error) throw new Error(json.error);
 
     STATE.data.comments = STATE.data.comments || [];
