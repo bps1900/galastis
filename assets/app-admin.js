@@ -231,21 +231,30 @@ function resetForm() {
 
 document.getElementById("btn-sync").addEventListener("click", async () => {
   const msg = document.getElementById("sync-msg");
-  if (!confirm("Sync data dari sheet O1-O4 ke Gamma? Data yang sudah ada tidak akan duplikat.")) return;
-  msg.textContent = "Sedang sync...";
+  const btn = document.getElementById("btn-sync");
+  if (!confirm("Sync data dari sheet O1-O4 ke Gamma? Duplikat akan dibersihkan otomatis.")) return;
+
+  // Loading state pada tombol
+  btn.disabled = true;
+  const originalBtnHtml = btn.innerHTML;
+  btn.innerHTML = `<span class="like-spinner"></span> Sync...`;
+
+  msg.textContent = "Sedang sync & membersihkan duplikat...";
   msg.className = "status-msg";
   try {
     const json = await postApi({ action: "syncKonten", secret: ADMIN_SECRET_INPUT });
     if (json.error) throw new Error(json.error);
     msg.textContent = `Selesai. ${json.added} karya baru ditambahkan.`;
     msg.className = "status-msg ok";
-    // Beri jeda sebentar supaya perubahan di Google Sheet konsisten sebelum dibaca ulang,
-    // lalu refresh otomatis dengan efek kedip halus (tanpa reload halaman).
+    // Beri jeda sebentar supaya perubahan di Google Sheet konsisten sebelum dibaca ulang
     await new Promise(r => setTimeout(r, 700));
     await fadeReloadKontenTable();
   } catch (err) {
     msg.textContent = err.message;
     msg.className = "status-msg err";
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalBtnHtml;
   }
 });
 
