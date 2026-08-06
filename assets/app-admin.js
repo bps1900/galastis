@@ -805,6 +805,11 @@ async function openMonitorZoom() {
   sub.textContent = label;
   body.innerHTML = `<div class="monitor-loading"><span class="spinner"></span> Memuat data like...</div>`;
   overlay.classList.add("open");
+  // Lepas kuncian scroll body & scroll internal box, supaya halaman jadi bisa
+  // di-scroll biasa dan seluruh isi kebuka penuh — supaya tools screenshot
+  // full-page (misal GoFullPage) bisa nangkep semuanya dengan bersih, tanpa
+  // konten keulang/kepotong akibat scroll internal yang tidak ikut ke-scroll.
+  document.body.classList.add("zoom-screenshot-mode");
 
   try {
     const matches = getMonitorMatchesForYear(ADMIN_FILTER_TAHUN);
@@ -817,6 +822,7 @@ async function openMonitorZoom() {
 
 function closeMonitorZoom() {
   document.getElementById("monitor-zoom-overlay").classList.remove("open");
+  document.body.classList.remove("zoom-screenshot-mode");
 }
 
 // ====== HELPERS ======
