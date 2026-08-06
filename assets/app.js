@@ -363,7 +363,7 @@ function renderKatalog() {
               : ""
           }
         </div>
-        ${seriList.length > 0 ? `<div class="top3-header" id="top3-header"></div>` : ""}
+        <div class="top3-header" id="top3-header">${top3PanelInner(seriList.length > 0 ? itemsBySeri[seriList[0]] : [])}</div>
       </div>
       <p class="section-sub">Klik salah satu karya untuk melihat tampilan penuh, like, dan berkomentar.</p>
     </div>
@@ -396,8 +396,6 @@ function renderKatalog() {
     const box = document.getElementById("top3-header");
     if (box && itemsBySeri[seri]) box.innerHTML = top3PanelInner(itemsBySeri[seri]);
   }
-
-  if (seriList.length > 0) updateTop3(seriList[0]);
 
   const tabs = main.querySelectorAll(".seri-tab");
   tabs.forEach(tab => {
