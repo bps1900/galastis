@@ -713,16 +713,18 @@ function buildMonitorHtml(json, matches, label) {
 
   return `
     ${head}
-    <div class="monitor-grid">
-      ${belum
-        .map(
-          p => `
-        <div class="monitor-name-card">
-          <p class="mn-name">${escHtml(p.Nama)}</p>
-          <p class="mn-nip">${escHtml(p.NIP)}</p>
-        </div>`
-        )
-        .join("")}
+    <div class="monitor-box">
+      <div class="monitor-grid">
+        ${belum
+          .map(
+            p => `
+          <div class="monitor-name-card">
+            <p class="mn-name">${escHtml(p.Nama)}</p>
+            <p class="mn-nip">${escHtml(p.NIP)}</p>
+          </div>`
+          )
+          .join("")}
+      </div>
     </div>
   `;
 }
