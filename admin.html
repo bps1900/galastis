@@ -179,7 +179,17 @@
     </div>
 
     <div class="panel" style="flex:1; min-height:0; display:flex; flex-direction:column;">
-      <h3 style="flex-shrink:0;">Daftar Pegawai</h3>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
+        <h3 style="margin:0;" id="pegawai-panel-title">Daftar Pegawai</h3>
+        <button class="btn btn-secondary" id="btn-monitor-like" title="Monitoring siapa saja yang belum like" style="font-size:12.5px; padding:8px 14px; flex-shrink:0;">❤ Monitoring Like</button>
+      </div>
+      <div id="monitor-filters" style="display:none; flex-direction:column; gap:6px; margin:8px 0 4px; flex-shrink:0;">
+        <p style="margin:0; font-size:11.5px; color:var(--abu);">Mengikuti filter Tahun / Kategori / Seri di panel Daftar Karya.</p>
+        <div id="filter-karya-monitor-wrap" style="display:none; align-items:center; gap:6px;">
+          <label style="font-size:11px; font-weight:600; color:var(--abu); flex-shrink:0;">Karya:</label>
+          <div id="filter-karya-monitor" style="flex:1;"></div>
+        </div>
+      </div>
       <div id="pegawai-table" style="flex:1; overflow-y:auto;">Memuat...</div>
     </div>
   </div>
