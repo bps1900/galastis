@@ -346,6 +346,14 @@ function renderKatalog() {
   const itemsBySeri = {};
   seriList.forEach(seri => { itemsBySeri[seri] = items.filter(i => i.Seri === seri); });
 
+  // Seri yang sedang aktif/ditampilkan. Pertahankan pilihan sebelumnya kalau masih
+  // relevan (masih ada di kategori/tahun ini), kalau tidak jatuhkan ke seri pertama.
+  if (!STATE.activeSeri || !seriList.includes(STATE.activeSeri)) {
+    STATE.activeSeri = seriList[0] || null;
+  }
+  const activeSeri = STATE.activeSeri;
+  const activeItems = activeSeri ? (itemsBySeri[activeSeri] || []) : [];
+
   main.innerHTML = `
     <div class="katalog-header">
       <div class="katalog-header-top">
@@ -356,31 +364,24 @@ function renderKatalog() {
               ? `<div class="seri-tabs">
                   ${seriList
                     .map(
-                      (seri, idx) => `<button class="seri-tab ${idx === 0 ? "active" : ""}" data-target="seri-block-${slugify(seri)}" data-seri="${escapeHtml(seri)}">Seri ${escapeHtml(seri)}</button>`
+                      seri => `<button class="seri-tab ${seri === activeSeri ? "active" : ""}" data-seri="${escapeHtml(seri)}">Seri ${escapeHtml(seri)}</button>`
                     )
                     .join("")}
                 </div>`
               : ""
           }
         </div>
-        <div class="top3-header" id="top3-header">${top3PanelInner(seriList.length > 0 ? itemsBySeri[seriList[0]] : [])}</div>
+        <div class="top3-header" id="top3-header">${top3PanelInner(activeItems)}</div>
       </div>
       <p class="section-sub">Klik salah satu karya untuk melihat tampilan penuh, like, dan berkomentar.</p>
     </div>
-    ${
-      items.length === 0
-        ? `<div class="empty-state">Belum ada karya ${kat} ${tahun ? `tahun ${escapeHtml(tahun)}` : ""} yang ditambahkan.</div>`
-        : seriList
-            .map(
-              seri => `
-        <div class="seri-block" id="seri-block-${slugify(seri)}">
-          <div class="grid">
-            ${itemsBySeri[seri].map(cardHtml).join("")}
-          </div>
-        </div>`
-            )
-            .join("")
-    }
+    <div class="grid" id="katalog-grid">
+      ${
+        activeItems.length === 0
+          ? `<div class="empty-state">Belum ada karya ${kat} ${tahun ? `tahun ${escapeHtml(tahun)}` : ""} yang ditambahkan.</div>`
+          : activeItems.map(cardHtml).join("")
+      }
+    </div>
   `;
 
   main.querySelectorAll(".card").forEach(card => {
@@ -392,41 +393,16 @@ function renderKatalog() {
     main.style.setProperty("--katalog-header-h", headerEl.offsetHeight + "px");
   }
 
-  function updateTop3(seri) {
-    const box = document.getElementById("top3-header");
-    if (box && itemsBySeri[seri]) box.innerHTML = top3PanelInner(itemsBySeri[seri]);
-  }
-
-  const tabs = main.querySelectorAll(".seri-tab");
-  tabs.forEach(tab => {
+  main.querySelectorAll(".seri-tab").forEach(tab => {
     tab.addEventListener("click", () => {
-      const target = document.getElementById(tab.dataset.target);
-      if (!target || !headerEl) return;
-      const y = target.getBoundingClientRect().top - main.getBoundingClientRect().top + main.scrollTop - headerEl.offsetHeight - 10;
-      main.scrollTo({ top: y, behavior: "smooth" });
+      if (tab.dataset.seri === STATE.activeSeri) return;
+      STATE.activeSeri = tab.dataset.seri;
+      renderKatalog();
+      main.scrollTo({ top: 0, behavior: "smooth" });
     });
   });
 
-  if (tabs.length > 0 && headerEl) {
-    const blocks = main.querySelectorAll(".seri-block");
-    const onScroll = () => {
-      let currentId = blocks[0] ? blocks[0].id : null;
-      blocks.forEach(block => {
-        if (block.getBoundingClientRect().top - headerEl.offsetHeight <= 40) currentId = block.id;
-      });
-      let currentSeri = null;
-      tabs.forEach(tab => {
-        const isActive = tab.dataset.target === currentId;
-        tab.classList.toggle("active", isActive);
-        if (isActive) currentSeri = tab.dataset.seri;
-      });
-      if (currentSeri) updateTop3(currentSeri);
-    };
-    main.onscroll = onScroll;
-    onScroll();
-  } else {
-    main.onscroll = null;
-  }
+  main.onscroll = null;
 }
 
 // Update stats (like & comment) pada kartu galeri dengan animasi kedip halus
