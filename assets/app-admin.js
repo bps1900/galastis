@@ -398,6 +398,7 @@ function populateFilterKategoriAdmin(items) {
   buildDropdown(container, options, ADMIN_FILTER_KATEGORI, (val) => {
     ADMIN_FILTER_KATEGORI = val;
     ADMIN_FILTER_SERI = "Semua Seri";
+    populateFilterKategoriAdmin(LAST_KONTEN_ITEMS);
     populateFilterSeriAdmin(LAST_KONTEN_ITEMS);
     renderKontenTable();
   }, "light", "");
