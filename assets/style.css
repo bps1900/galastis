@@ -926,6 +926,19 @@ body:has(.admin-wrap-wide) { height: 100vh; overflow: hidden; }
   width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--garis);
   font-family: var(--font-body); font-size: 12.5px; background: var(--kertas);
 }
+.panel input[type="checkbox"] {
+  width: auto; padding: 0; accent-color: var(--biru); cursor: pointer; flex-shrink: 0;
+}
+.admin-card {
+  position: relative;
+}
+.admin-card-checkbox {
+  flex-shrink: 0;
+  accent-color: var(--biru);
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
 .panel textarea { resize: vertical; min-height: 50px; }
 .row-actions { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
 .admin-col .btn { font-size: 12.5px; padding: 8px 14px; }

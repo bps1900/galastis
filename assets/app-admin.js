@@ -4,6 +4,7 @@ let ADMIN_SECRET_INPUT = "";
 let editingId = null; // null = mode tambah, ada id = mode edit
 let LAST_KONTEN_ITEMS = [];
 let ADMIN_FILTER_TAHUN = "all";
+let SELECTED_IDS = new Set();
 
 document.addEventListener("DOMContentLoaded", init);
 document.getElementById("btn-logout").addEventListener("click", () => {
@@ -64,6 +65,14 @@ function buildDropdown(container, options, value, onChange, theme, labelPrefix) 
     });
   });
   document.addEventListener("click", closeDd);
+}
+
+// Pesan status utama di atas "Daftar Karya Tersimpan" — berganti sesuai aksi terakhir
+// (tambah / edit / hapus / hapus massal / sync), bukan cuma dipakai oleh Sync saja.
+function setStatusMsg(text, type) {
+  const msg = document.getElementById("sync-msg");
+  msg.textContent = text;
+  msg.className = `status-msg ${type || ""}`.trim();
 }
 
 function escHtml(str) {
@@ -156,6 +165,7 @@ async function addKonten() {
     if (json.error) throw new Error(json.error);
     msg.textContent = "Karya berhasil ditambahkan.";
     msg.className = "status-msg ok";
+    setStatusMsg("1 karya berhasil ditambahkan.", "ok");
     await fadeReloadKontenTable();
     setTimeout(closeKaryaModal, 500);
   } catch (err) {
@@ -194,6 +204,7 @@ async function saveEdit() {
     if (json.error) throw new Error(json.error);
     msg.textContent = "Karya berhasil diperbarui.";
     msg.className = "status-msg ok";
+    setStatusMsg("1 karya berhasil diedit.", "ok");
     await fadeReloadKontenTable();
     setTimeout(closeKaryaModal, 500);
   } catch (err) {
@@ -244,7 +255,9 @@ document.getElementById("btn-sync").addEventListener("click", async () => {
   try {
     const json = await postApi({ action: "syncKonten", secret: ADMIN_SECRET_INPUT });
     if (json.error) throw new Error(json.error);
-    msg.textContent = `Selesai. ${json.added} karya baru ditambahkan.`;
+    const parts = [`${json.added} karya baru`];
+    if (json.updated) parts.push(`${json.updated} link diperbarui`);
+    msg.textContent = `Selesai. ${parts.join(", ")}. Karya manual tidak terpengaruh.`;
     msg.className = "status-msg ok";
     // Beri jeda sebentar supaya perubahan di Google Sheet konsisten sebelum dibaca ulang
     await new Promise(r => setTimeout(r, 700));
@@ -340,14 +353,20 @@ function renderKontenTable() {
     ? LAST_KONTEN_ITEMS
     : LAST_KONTEN_ITEMS.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
 
+  // Buang id terpilih yang sudah tidak ada lagi di data (misal terhapus dari sisi lain)
+  const allIds = new Set(LAST_KONTEN_ITEMS.map(i => String(i.ID)));
+  [...SELECTED_IDS].forEach(id => { if (!allIds.has(id)) SELECTED_IDS.delete(id); });
+
   if (items.length === 0) {
     wrap.innerHTML = `<p style="color:var(--abu)">Belum ada karya.</p>`;
+    updateBulkUI([]);
     return;
   }
   wrap.innerHTML = `
     <div class="admin-grid">
       ${items.map(i => `
         <div class="admin-card">
+          <input type="checkbox" class="admin-card-checkbox" data-id="${i.ID}" ${SELECTED_IDS.has(String(i.ID)) ? "checked" : ""}>
           <div class="admin-card-info">
             <span class="admin-card-badge">${i.Kategori} · Seri ${i.Seri} · ${i.Tahun || "-"}</span>
             <p class="admin-card-name">${i.Mahasiswa || "-"}</p>
@@ -368,7 +387,70 @@ function renderKontenTable() {
   wrap.querySelectorAll(".del-btn").forEach(btn => {
     btn.addEventListener("click", () => deleteKonten(btn.dataset.id, btn));
   });
+  wrap.querySelectorAll(".admin-card-checkbox").forEach(chk => {
+    chk.addEventListener("change", () => {
+      const id = String(chk.dataset.id);
+      if (chk.checked) SELECTED_IDS.add(id); else SELECTED_IDS.delete(id);
+      updateBulkUI(items);
+    });
+  });
+  updateBulkUI(items);
 }
+
+// Sinkronkan checkbox "Pilih Semua" + tombol "Hapus Terpilih" dengan item yang sedang tampil
+function updateBulkUI(visibleItems) {
+  const selectAll = document.getElementById("chk-select-all");
+  const bulkBtn = document.getElementById("btn-bulk-delete");
+  const bulkCount = document.getElementById("bulk-count");
+
+  const visibleIds = visibleItems.map(i => String(i.ID));
+  const selectedVisible = visibleIds.filter(id => SELECTED_IDS.has(id));
+
+  if (selectAll) {
+    selectAll.checked = visibleIds.length > 0 && selectedVisible.length === visibleIds.length;
+    selectAll.indeterminate = selectedVisible.length > 0 && selectedVisible.length < visibleIds.length;
+  }
+
+  bulkCount.textContent = SELECTED_IDS.size;
+  bulkBtn.style.display = SELECTED_IDS.size > 0 ? "inline-flex" : "none";
+}
+
+document.getElementById("chk-select-all").addEventListener("change", (e) => {
+  const items = ADMIN_FILTER_TAHUN === "Semua Tahun" || !ADMIN_FILTER_TAHUN
+    ? LAST_KONTEN_ITEMS
+    : LAST_KONTEN_ITEMS.filter(i => String(i.Tahun || "").trim() === ADMIN_FILTER_TAHUN);
+  if (e.target.checked) {
+    items.forEach(i => SELECTED_IDS.add(String(i.ID)));
+  } else {
+    items.forEach(i => SELECTED_IDS.delete(String(i.ID)));
+  }
+  renderKontenTable();
+});
+
+document.getElementById("btn-bulk-delete").addEventListener("click", async () => {
+  if (SELECTED_IDS.size === 0) return;
+  const count = SELECTED_IDS.size;
+  if (!confirm(`Hapus ${count} karya terpilih? Tindakan ini tidak bisa dibatalkan.`)) return;
+
+  const btn = document.getElementById("btn-bulk-delete");
+  btn.disabled = true;
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = `<span class="like-spinner"></span> Menghapus...`;
+
+  try {
+    const ids = [...SELECTED_IDS];
+    const json = await postApi({ action: "deleteKontenBulk", secret: ADMIN_SECRET_INPUT, ids });
+    if (json.error) throw new Error(json.error);
+    SELECTED_IDS.clear();
+    setStatusMsg(`${json.deleted} karya berhasil dihapus.`, "ok");
+    await fadeReloadKontenTable();
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
+});
 
 async function loadPegawaiTable() {
   const wrap = document.getElementById("pegawai-table");
@@ -428,6 +510,8 @@ async function deleteKonten(id, btn) {
     const json = await postApi({ action: "deleteKonten", secret: ADMIN_SECRET_INPUT, id });
     if (json.error) throw new Error(json.error);
     if (editingId === id) resetForm();
+    SELECTED_IDS.delete(String(id));
+    setStatusMsg("1 karya berhasil dihapus.", "ok");
     await fadeReloadKontenTable();
   } catch (err) {
     // Restore tombol jika gagal
