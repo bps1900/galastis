@@ -1073,6 +1073,10 @@ body:has(.login-wrap) { height: 100vh; overflow: hidden; }
   color: var(--abu);
 }
 .kf-btn-outline:hover { background: var(--biru-muda); color: var(--biru-tua); border-color: var(--biru-muda); }
+.kf-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+.kf-btn-primary:disabled:hover { filter: none; box-shadow: 0 6px 16px rgba(27,111,184,0.28); }
+.kf-input-wrap input:disabled,
+.kf-input-wrap select:disabled { background: var(--garis); opacity: 0.6; cursor: not-allowed; }
 
 @media (max-width: 640px) {
   .kf-grid { grid-template-columns: 1fr; }

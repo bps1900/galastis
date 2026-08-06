@@ -158,8 +158,8 @@ async function addKonten() {
     msg.className = "status-msg err";
     return;
   }
-  msg.textContent = "Menyimpan...";
-  msg.className = "status-msg";
+  msg.textContent = "";
+  const btn = setKaryaBtnLoading("Menyimpan...");
   try {
     const json = await postApi(payload);
     if (json.error) throw new Error(json.error);
@@ -171,6 +171,8 @@ async function addKonten() {
   } catch (err) {
     msg.textContent = err.message;
     msg.className = "status-msg err";
+  } finally {
+    restoreKaryaBtn(btn);
   }
 }
 
@@ -197,8 +199,8 @@ async function saveEdit() {
     msg.className = "status-msg err";
     return;
   }
-  msg.textContent = "Menyimpan perubahan...";
-  msg.className = "status-msg";
+  msg.textContent = "";
+  const btn = setKaryaBtnLoading("Menyimpan...");
   try {
     const json = await postApi(payload);
     if (json.error) throw new Error(json.error);
@@ -210,7 +212,30 @@ async function saveEdit() {
   } catch (err) {
     msg.textContent = err.message;
     msg.className = "status-msg err";
+  } finally {
+    restoreKaryaBtn(btn);
   }
+}
+
+// Tampilkan spinner + kunci form modal Tambah/Edit Karya selama request berjalan,
+// supaya jelas kalau lagi diproses dan tidak bisa diklik dobel.
+function setKaryaBtnLoading(label) {
+  const btn = document.getElementById("btn-add");
+  const cancelBtn = document.getElementById("btn-cancel-edit");
+  btn.dataset.originalHtml = btn.innerHTML;
+  btn.innerHTML = `<span class="like-spinner"></span> ${label}`;
+  btn.disabled = true;
+  cancelBtn.disabled = true;
+  karyaOverlay.querySelectorAll("input, select").forEach(el => (el.disabled = true));
+  return btn;
+}
+
+function restoreKaryaBtn(btn) {
+  const cancelBtn = document.getElementById("btn-cancel-edit");
+  btn.innerHTML = btn.dataset.originalHtml;
+  btn.disabled = false;
+  cancelBtn.disabled = false;
+  karyaOverlay.querySelectorAll("input, select").forEach(el => (el.disabled = false));
 }
 
 function startEdit(item) {
