@@ -915,6 +915,7 @@ async function submitComment(item) {
     textarea.value = "";
     msg.textContent = "";
     openModal(item.ID); // re-render dengan komentar terbaru
+    renderKatalog(); // sinkronkan jumlah komentar di kartu galeri belakang layar
   } catch (err) {
     msg.textContent = err.message;
     msg.className = "status-msg err";
