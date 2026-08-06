@@ -1252,6 +1252,98 @@ th { color: var(--abu); font-weight: 600; font-size: 11px; text-transform: upper
 .monitor-table tr.liked .monitor-badge { background: var(--hijau); color: var(--putih); }
 .monitor-table tr.pending .monitor-badge { background: var(--oren-muda); color: var(--oren); }
 
+/* ---------- Monitoring Like (kartu modern, mentimeter-style) ---------- */
+
+.monitor-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 50px 0;
+  color: var(--abu);
+  font-size: 13.5px;
+}
+
+.monitor-head { margin-bottom: 12px; }
+.monitor-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--biru-tua);
+  margin: 0 0 8px;
+}
+
+.monitor-empty-ok {
+  text-align: center;
+  padding: 44px 12px;
+  color: var(--hijau);
+  font-weight: 700;
+  font-size: 15px;
+  background: var(--hijau-muda);
+  border-radius: 14px;
+}
+
+.monitor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.monitor-name-card {
+  background: linear-gradient(150deg, var(--oren-muda) 0%, var(--putih) 75%);
+  border: 1.5px solid #F6D3AC;
+  border-radius: 14px;
+  padding: 13px 10px;
+  text-align: center;
+  transition: transform .12s ease;
+}
+.monitor-name-card .mn-name {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--tinta);
+  margin: 0 0 3px;
+  line-height: 1.3;
+}
+.monitor-name-card .mn-nip {
+  font-size: 11px;
+  color: var(--abu);
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+/* Modal fullscreen untuk screenshot */
+.monitor-zoom-box {
+  width: 94vw;
+  max-width: 1100px;
+  height: 88vh;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+}
+#monitor-zoom-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 26px 28px;
+}
+#monitor-zoom-body .monitor-title { font-size: 17px; }
+#monitor-zoom-body .monitor-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+#monitor-zoom-body .monitor-name-card {
+  padding: 20px 14px;
+  border-radius: 16px;
+}
+#monitor-zoom-body .monitor-name-card .mn-name { font-size: 15.5px; }
+#monitor-zoom-body .monitor-name-card .mn-nip { font-size: 12px; }
+#monitor-zoom-body .monitor-empty-ok { padding: 70px 20px; font-size: 18px; }
+
+@media (max-width: 720px) {
+  .monitor-zoom-box { width: 100%; height: 94vh; max-height: 94vh; border-radius: 20px 20px 0 0; }
+  #monitor-zoom-body { padding: 16px 16px 22px; }
+  #monitor-zoom-body .monitor-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 720px) {

@@ -625,6 +625,11 @@ document.getElementById("btn-monitor-like").addEventListener("click", () => {
   const btn = document.getElementById("btn-monitor-like");
   const title = document.getElementById("pegawai-panel-title");
   const filtersWrap = document.getElementById("monitor-filters");
+  const zoomBtn = document.getElementById("btn-monitor-zoom");
+  const wrap = document.getElementById("pegawai-table");
+
+  // Tampilkan loading segera supaya tidak terasa ngelag saat tunggu data/render
+  wrap.innerHTML = `<div class="monitor-loading"><span class="spinner"></span> Memuat...</div>`;
 
   if (MONITOR_MODE) {
     btn.classList.add("active-monitor");
@@ -637,6 +642,7 @@ document.getElementById("btn-monitor-like").addEventListener("click", () => {
     btn.textContent = "❤ Monitoring Like";
     title.textContent = "Daftar Pegawai";
     filtersWrap.style.display = "none";
+    if (zoomBtn) zoomBtn.style.display = "none";
     loadPegawaiTable();
   }
 });
@@ -658,6 +664,13 @@ function getMonitorMatches() {
   );
 }
 
+// Versi untuk tampilan Zoom: semua Kategori & Seri digabung, hanya butuh Tahun.
+// Dipakai supaya SS bisa langsung mencakup seluruh karya di tahun tsb.
+function getMonitorMatchesForYear(tahun) {
+  if (!tahun || tahun === "Semua Tahun") return [];
+  return LAST_KONTEN_ITEMS.filter(i => String(i.Tahun || "").trim() === tahun);
+}
+
 async function loadMonitorData() {
   const res = await fetch(`${API_URL}?action=getData`);
   const json = await res.json();
@@ -665,70 +678,109 @@ async function loadMonitorData() {
   return json;
 }
 
+// Bangun HTML kartu "Belum Pernah Like" (dipakai baik oleh panel biasa maupun modal Zoom)
+function buildMonitorHtml(json, matches, label) {
+  const pegawaiList = json.pegawai || [];
+  if (pegawaiList.length === 0) {
+    return `<p style="color:var(--abu); font-size:13px; padding:24px 6px; text-align:center;">Belum ada pegawai terdaftar.</p>`;
+  }
+
+  const matchIds = new Set(matches.map(m => String(m.ID)));
+  const likedNipSet = new Set(
+    (json.likes || [])
+      .filter(l => matchIds.has(String(l.KaryaId)))
+      .map(l => String(l.NIP))
+  );
+
+  const belum = pegawaiList
+    .filter(p => !likedNipSet.has(String(p.NIP)))
+    .sort((a, b) => String(a.Nama).localeCompare(String(b.Nama)));
+
+  const sudahCount = pegawaiList.length - belum.length;
+
+  const head = `
+    <div class="monitor-head">
+      <h4 class="monitor-title">Belum Pernah Like</h4>
+      <div class="monitor-summary">
+        <span>${escHtml(label)}</span>
+        <span class="monitor-summary-count">${sudahCount}/${pegawaiList.length} sudah like</span>
+      </div>
+    </div>`;
+
+  if (belum.length === 0) {
+    return `${head}<div class="monitor-empty-ok">🎉 Semua pegawai sudah like!</div>`;
+  }
+
+  return `
+    ${head}
+    <div class="monitor-grid">
+      ${belum
+        .map(
+          p => `
+        <div class="monitor-name-card">
+          <p class="mn-name">${escHtml(p.Nama)}</p>
+          <p class="mn-nip">${escHtml(p.NIP)}</p>
+        </div>`
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 async function renderMonitorResult() {
   if (!MONITOR_MODE) return;
   const wrap = document.getElementById("pegawai-table");
+  const zoomBtn = document.getElementById("btn-monitor-zoom");
   const matches = getMonitorMatches();
+
+  if (zoomBtn) {
+    zoomBtn.style.display = ADMIN_FILTER_TAHUN !== "Semua Tahun" ? "inline-flex" : "none";
+  }
 
   if (matches.length === 0) {
     wrap.innerHTML = `<p style="color:var(--abu); font-size:13px; padding:24px 6px; text-align:center;">Pilih Tahun, Kategori, dan Seri di panel Daftar Karya untuk melihat siapa saja yang belum like.</p>`;
     return;
   }
 
-  wrap.innerHTML = `<div class="loading-row"><span class="spinner"></span> Memuat data like...</div>`;
+  wrap.innerHTML = `<div class="monitor-loading"><span class="spinner"></span> Memuat data like...</div>`;
   try {
     const json = await loadMonitorData();
-    const pegawaiList = json.pegawai || [];
-    const matchIds = new Set(matches.map(m => String(m.ID)));
-    const likedNipSet = new Set(
-      (json.likes || [])
-        .filter(l => matchIds.has(String(l.KaryaId)))
-        .map(l => String(l.NIP))
-    );
-
-    if (pegawaiList.length === 0) {
-      wrap.innerHTML = `<p style="color:var(--abu); font-size:13px; padding:24px 6px; text-align:center;">Belum ada pegawai terdaftar.</p>`;
-      return;
-    }
-
-    const rows = pegawaiList
-      .map(p => ({ nama: p.Nama, nip: p.NIP, liked: likedNipSet.has(String(p.NIP)) }))
-      .sort((a, b) => {
-        if (a.liked !== b.liked) return a.liked ? 1 : -1; // belum like duluan
-        return String(a.nama).localeCompare(String(b.nama));
-      });
-
-    const sudahCount = rows.filter(r => r.liked).length;
     const label = `${ADMIN_FILTER_KATEGORI} · Seri ${ADMIN_FILTER_SERI} · ${ADMIN_FILTER_TAHUN}`;
-
-    wrap.innerHTML = `
-      <div class="monitor-summary">
-        <span>${escHtml(label)}</span>
-        <span class="monitor-summary-count">${sudahCount}/${rows.length} sudah like</span>
-      </div>
-      <div class="monitor-table-wrap">
-        <table class="monitor-table">
-          <thead>
-            <tr><th>Pegawai</th><th>NIP</th><th>Status</th></tr>
-          </thead>
-          <tbody>
-            ${rows
-              .map(
-                r => `
-              <tr class="${r.liked ? "liked" : "pending"}">
-                <td>${escHtml(r.nama)}</td>
-                <td class="monitor-nip-cell">${escHtml(r.nip)}</td>
-                <td><span class="monitor-badge">${r.liked ? "✓ Sudah Like" : "Belum Like"}</span></td>
-              </tr>`
-              )
-              .join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
+    wrap.innerHTML = buildMonitorHtml(json, matches, label);
   } catch (err) {
     wrap.innerHTML = `<p class="status-msg err">${err.message}</p>`;
   }
+}
+
+// ====== MONITORING LIKE — TAMPILAN ZOOM (fullscreen, buat screenshot) ======
+
+document.getElementById("btn-monitor-zoom").addEventListener("click", openMonitorZoom);
+document.getElementById("monitor-zoom-close").addEventListener("click", closeMonitorZoom);
+document.getElementById("monitor-zoom-overlay").addEventListener("click", e => {
+  if (e.target.id === "monitor-zoom-overlay") closeMonitorZoom();
+});
+
+async function openMonitorZoom() {
+  const overlay = document.getElementById("monitor-zoom-overlay");
+  const body = document.getElementById("monitor-zoom-body");
+  const sub = document.getElementById("monitor-zoom-sub");
+  const label = `Semua Kategori · Semua Seri · ${ADMIN_FILTER_TAHUN}`;
+
+  sub.textContent = label;
+  body.innerHTML = `<div class="monitor-loading"><span class="spinner"></span> Memuat data like...</div>`;
+  overlay.classList.add("open");
+
+  try {
+    const matches = getMonitorMatchesForYear(ADMIN_FILTER_TAHUN);
+    const json = await loadMonitorData();
+    body.innerHTML = buildMonitorHtml(json, matches, label);
+  } catch (err) {
+    body.innerHTML = `<p class="status-msg err">${err.message}</p>`;
+  }
+}
+
+function closeMonitorZoom() {
+  document.getElementById("monitor-zoom-overlay").classList.remove("open");
 }
 
 // ====== HELPERS ======
