@@ -436,6 +436,14 @@ function renderKatalog() {
     });
   }
 
+  // Untuk Infografis & Leaflet, urutkan berdasarkan jumlah like terbanyak di atas.
+  // Sort ini stabil (Array.sort di JS modern stabil), jadi kalau semua item belum
+  // ada like (semua 0), urutannya otomatis tidak berubah dari urutan aslinya.
+  const isLikeSortKategori = kat === "Infografis" || kat === "Leaflet";
+  if (isLikeSortKategori) {
+    activeItems = [...activeItems].sort((a, b) => likeCountFor(b.ID) - likeCountFor(a.ID));
+  }
+
   main.innerHTML = `
     <div class="katalog-header">
       <div class="katalog-header-top">
